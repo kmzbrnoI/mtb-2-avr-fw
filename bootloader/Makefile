@@ -1,10 +1,10 @@
-MCU = atmega128
-CRC_POS = 0x1DF00
+MCU = atmega328p
+CRC_POS = 0x6f80
 F_CPU = 14745600
 FORMAT = ihex
-TARGET = build/mtb-uni-v4-bootloader
+TARGET = build/mtb-uni-v2-bootloader
 BUILDDIR = build
-TARGET = $(BUILDDIR)/mtb-uni-v4-bootloader
+TARGET = $(BUILDDIR)/mtb-uni-v2-bootloader
 OBJDIR = obj
 SRC = $(wildcard src/*.c) $(wildcard lib/*.c)
 OPT = s
@@ -22,7 +22,7 @@ CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += -std=$(CSTANDARD)
 
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
-LDFLAGS += -Wl,-Ttext=0x1E000
+LDFLAGS += -Wl,-Ttext=0x7000
 LDFLAGS += -Wl,-section-start=.fwattr=$(CRC_POS)
 
 #---------------- Programming Options (avrdude) ----------------

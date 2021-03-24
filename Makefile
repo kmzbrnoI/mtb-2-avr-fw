@@ -1,6 +1,6 @@
 MCU = atmega328p
-CRC_POS = 0x7000
-FUSES = -U lfuse:w:0xFE:m -U hfuse:w:0xD1:m -U efuse:w:0xFC:m -U lock:w:0xEF:m
+CRC_POS = 0x6f80
+FUSES = -U lfuse:w:0xFE:m -U hfuse:w:0xD0:m -U efuse:w:0xFC:m -U lock:w:0xEF:m
 F_CPU = 14745600
 FORMAT = ihex
 BUILDDIR = build
@@ -95,10 +95,9 @@ program: $(TARGET)_with_bootloader.hex $(TARGET).eep
 fuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(FUSES)
 
-$(TARGET)_with_bootloader.hex: $(TARGET).hex bootloader/build/mtb-uni-v4-bootloader.hex
+$(TARGET)_with_bootloader.hex: $(TARGET).hex bootloader/build/mtb-uni-v2-bootloader.hex
 	head -n -1 $< > $@
-	head -n1 bootloader/build/mtb-uni-v4-bootloader.hex >> $@ # omit second line, in contains .fwattr section
-	tail -n +3 bootloader/build/mtb-uni-v4-bootloader.hex >> $@
+	tail -n +2 bootloader/build/mtb-uni-v2-bootloader.hex >> $@
 
 $(BUILDDIR)/%.hex: $(BUILDDIR)/%.elf
 	@echo

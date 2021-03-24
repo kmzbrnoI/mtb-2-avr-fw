@@ -72,17 +72,16 @@ int main() {
 	io_led_green_off();
 	io_led_blue_off();
 
-	// Setup timer 3 @ 2.5 Hz (period 400 ms)
-	TCCR3B = (1 << WGM12) | (1 << CS12); // CTC mode, 256× prescaler
-	ETIMSK = (1 << OCIE3A); // enable compare match interrupt
-	OCR3A = 23020;
+	// Setup timer 1 @ 2.5 Hz (period 400 ms)
+	TCCR1B = (1 << WGM12) | (1 << CS12); // 256× prescaler
+	OCR1A = 23039;
+	TIMSK1 = (1 << OCIE1A); // enable compare match interrupt
 
 	uint8_t boot = eeprom_read_byte(EEPROM_ADDR_BOOT);
 	if (boot != CONFIG_BOOT_NORMAL)
 		eeprom_write_byte(EEPROM_ADDR_BOOT, CONFIG_BOOT_NORMAL);
 	if ((boot != CONFIG_BOOT_FWUPGD) && (io_button()))
 		check_and_boot();
-
 
 	// Not booting → start MTBbus
 	_mtbbus_init();
@@ -138,8 +137,8 @@ static inline void main_program() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool fwcrc_ok() {
-	uint8_t no_pages = pgm_read_byte_far(&fwattr.no_pages);
-	uint16_t crc_read = pgm_read_word_far(&fwattr.crc);
+	uint8_t no_pages = pgm_read_byte(&fwattr.no_pages);
+	uint16_t crc_read = pgm_read_word(&fwattr.crc);
 
 	if ((no_pages == 0xFF) || (no_pages == 0))
 		return false;
@@ -147,7 +146,7 @@ bool fwcrc_ok() {
 	uint16_t crc = 0;
 	for (size_t i = 0; i < no_pages; i++)
 		for (size_t j = 0; j < SPM_PAGESIZE; j++)
-			crc = crc16modbus_byte(crc, pgm_read_byte_far((SPM_PAGESIZE*i) + j));
+			crc = crc16modbus_byte(crc, pgm_read_byte((SPM_PAGESIZE*i) + j));
 
 	return crc_read == crc;
 }
@@ -247,7 +246,7 @@ static void mtbbus_send_error(uint8_t code) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-ISR(TIMER3_COMPA_vect) {
+ISR(TIMER1_COMPA_vect) {
 	io_led_red_toggle();
 	io_led_green_toggle();
 }
