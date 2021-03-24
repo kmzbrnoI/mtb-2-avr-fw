@@ -35,9 +35,6 @@ static inline void _mtbbus_received_non_ninth(uint8_t data);
 void mtbbus_init(uint8_t addr, uint8_t speed) {
 	mtbbus_addr = addr;
 
-	DDRE |= 0x04; // UART direction
-	uart_in();
-
 	mtbbus_set_speed(speed);
 
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00); // 9-bit data
@@ -115,7 +112,7 @@ static void _send_next_byte() {
 	mtbbus_next_byte_to_send++;
 }
 
-ISR(USART0_TX_vect) {
+ISR(USART_TX_vect) {
 	if (mtbbus_next_byte_to_send < mtbbus_output_buf_size) {
 		_send_next_byte();
 	} else {
@@ -136,7 +133,7 @@ bool mtbbus_can_fill_output_buf() {
 ///////////////////////////////////////////////////////////////////////////////
 // Receiving
 
-ISR(USART0_RX_vect) {
+ISR(USART_RX_vect) {
 	uint8_t status = UCSR0A;
 	bool ninth = (UCSR0B >> 1) & 0x01;
 	uint8_t data = UDR0;

@@ -32,8 +32,6 @@ void led_red_ok();
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
 
-#define BEACON_LED_RED // code for MTB-UNI v4.0 should define this variable
-
 #define LED_GR_ON 5
 #define LED_GR_OFF 2
 volatile uint8_t led_gr_counter = 0;
@@ -87,15 +85,16 @@ static inline void init() {
 	io_led_blue_on();
 	scom_init();
 
-	// Setup timer 1 @ 10 kHz (period 100 us)
-	TCCR1B = (1 << WGM12) | (1 << CS10); // CTC mode, no prescaler
-	TIMSK = (1 << OCIE1A); // enable compare match interrupt
-	OCR1A = 1473;
+	// Setup timer 0 @ 10 kHz (period 100 us)
+	TCCR0A = (1 << WGM01); // CTC mode
+	TCCR0B = (1 << CS01); // CTC mode, prescaler 8×
+	TIMSK0 = (1 << OCIE0A); // enable compare match interrupt
+	OCR0A = 182;
 
-	// Setup timer 3 @ 100 Hz (period 10 ms)
-	TCCR3B = (1 << WGM12) | (1 << CS11) | (1 << CS10); // CTC mode, 64× prescaler
-	ETIMSK = (1 << OCIE3A); // enable compare match interrupt
-	OCR3A = 2302;
+	// Setup timer 1 @ 100 Hz (period 10 ms)
+	TCCR1B = (1 << WGM12) | (1 << CS11); // CRC mode, 8× prescaler
+	TIMSK1 = (1 << OCIE1A); // enable compare match interrupt
+	OCR1A = 18430;
 
 	config_load();
 	outputs_set_full(config_safe_state);
@@ -115,12 +114,12 @@ static inline void init() {
 	io_led_blue_off();
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER0_COMPA_vect) {
 	// Timer 1 @ 10 kHz (period 100 us)
 	inputs_debounce_update();
 }
 
-ISR(TIMER3_COMPA_vect) {
+ISR(TIMER1_COMPA_vect) {
 	// Timer 3 @ 100 Hz (period 10 ms)
 	scom_update();
 	outputs_update();
@@ -138,9 +137,6 @@ static inline void leds_update() {
 	}
 
 	bool led_red_flashing = error_flags.all;
-	#ifdef BEACON_LED_RED
-	led_red_flashing |= beacon;
-	#endif
 
 	if (led_red_counter > 0) {
 		led_red_counter--;
