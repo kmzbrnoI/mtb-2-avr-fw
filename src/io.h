@@ -29,6 +29,7 @@
 
 #define PIN_OUTPUT_SET PD3
 #define PIN_INPUT_SHIFT PD7
+#define PIN_OUTPUTS_DISABLE PD6
 
 #define PIN_IR_MA PC3
 #define PIN_IR_MB PC2
@@ -125,5 +126,8 @@ static inline void io_ir_channel(uint8_t channel) {
 	else
 		PORTC &= ~(1 << PIN_IR_MB);
 }
+
+static inline void outputs_enable() { PORTD &= ~(1 << PIN_OUTPUTS_DISABLE); }
+static inline void outputs_disable() { PORTD |= (1 << PIN_OUTPUTS_DISABLE); }
 
 #endif

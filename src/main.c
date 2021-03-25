@@ -76,6 +76,7 @@ int main() {
 
 		if (!ir_shift_disable) {
 			io_shift_update();
+			outputs_enable();
 			if (on_shift_scanned != NULL) {
 				on_shift_scanned();
 				on_shift_scanned = NULL;
