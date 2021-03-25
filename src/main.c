@@ -13,6 +13,7 @@
 #include "outputs.h"
 #include "config.h"
 #include "inputs.h"
+#include "ir.h"
 #include "../lib/mtbbus.h"
 #include "../lib/crc16modbus.h"
 
@@ -73,12 +74,13 @@ int main() {
 			config_write = false;
 		}
 
-		io_shift_update();
-
-		io_ir_channel(1);
-		io_ir_pulse(true);
-		_delay_us(1);
-		io_ir_pulse(false);
+		if (!ir_shift_disable) {
+			io_shift_update();
+			if (on_shift_scanned != NULL) {
+				on_shift_scanned();
+				on_shift_scanned = NULL;
+			}
+		}
 
 		wdt_reset();
 		_delay_us(50);
@@ -92,11 +94,11 @@ static inline void init() {
 	io_led_blue_on();
 	scom_init();
 
-	// Setup timer 0 @ 10 kHz (period 100 us)
+	// Setup timer 0 @ 20 kHz (period 100 us)
 	TCCR0A = (1 << WGM01); // CTC mode
 	TCCR0B = (1 << CS01); // CTC mode, prescaler 8×
 	TIMSK0 = (1 << OCIE0A); // enable compare match interrupt
-	OCR0A = 182;
+	OCR0A = 91;
 
 	// Setup timer 1 @ 100 Hz (period 10 ms)
 	TCCR1B = (1 << WGM12) | (1 << CS11); // CRC mode, 8× prescaler
@@ -125,8 +127,15 @@ static inline void init() {
 }
 
 ISR(TIMER0_COMPA_vect) {
-	// Timer 1 @ 10 kHz (period 100 us)
-	inputs_debounce_update();
+	// Timer 1 @ 20 kHz (period 50 us)
+	static bool divider = false;
+
+	if (!inputs_disabled)
+		ir_update_50us();
+
+	if (divider) // 10 kHz (100 us)
+		inputs_debounce_update();
+	divider = !divider;
 }
 
 ISR(TIMER1_COMPA_vect) {

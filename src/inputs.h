@@ -21,6 +21,7 @@ extern volatile uint16_t inputs_old;
 
 // This function should be called each 100 us
 void inputs_debounce_update();
+void ir_debounce_update();
 
 // This function should be called each 10 ms
 void inputs_fall_update();
