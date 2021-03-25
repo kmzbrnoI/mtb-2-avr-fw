@@ -3,16 +3,16 @@
 #include "io.h"
 #include "config.h"
 
-uint16_t inputs_logic_state= 0;
-uint16_t inputs_debounced_state = 0;
-uint16_t inputs_old = 0;
+volatile uint16_t inputs_logic_state = 0;
+volatile uint16_t inputs_debounced_state = 0;
+volatile uint16_t inputs_old = 0;
 
 bool btn_pressed = false;
 
 #define DEBOUNCE_THRESHOLD 100 // 10 ms
-uint8_t _inputs_debounce_counter[NO_INPUTS] = {0, };
-uint8_t _inputs_fall_counter[NO_INPUTS] = {0, };
-uint8_t _btn_debounce_counter = 0;
+volatile uint8_t _inputs_debounce_counter[NO_INPUTS] = {0, };
+volatile uint8_t _inputs_fall_counter[NO_INPUTS] = {0, };
+volatile uint8_t _btn_debounce_counter = 0;
 
 
 static void _inputs_button_debuounce_update();
