@@ -1,9 +1,11 @@
 # MTB-UNI v2 AVR Firmware
 
-TODO edit this readme
+This repository contains firmware for ATmega328p MCU for upgrading old
+[MTB-UNI v2 module](https://mtb.kmz-brno.cz/uni). Old AT89C2051 processor
+from UNI-UNI board is removed & replaced with [new board with ATmega328p
+processor](https://github.com/kmzbrnoI/mtb-2-avr-pcb).
 
-This repository contains firmware for ATmega128 MCU for
-[MTB-UNI v4 module](https://mtb.kmz-brno.cz/uni).
+This allows old MTB-UNI board to work on new MTBbus with new features.
 
 ## Build & requirements
 
@@ -14,16 +16,10 @@ Hex files are available in *Releases* section.
 
 ## Programming
 
-Firmware could be programmed via programming connector on MTB-UNI module (ISP).
-Warning: MTB-UNI contains bug: MISO & MOSI pins are not on programming connector,
-they are placed on RS485 driver's pins. For programming v4.0 modules, please
-remove RS485 driver and connect pins MISO & MOSI to appropriate pins. SCK,
-RESET, VCC & GND could be connected via programming connector.
+Firmware could be programmed directly to new board (connect pinheaders to
+pins & solder/hold reset wire on pad) via ISP.
 
-MTB-UNI v4.2 fixes this bug. For programming, please remove RS485 driver as it
-uses same pins as are used for serial programming.
-
-In future, firmware could also be upgraded directly via MTBbus.
+Firmware could also be upgraded directly via MTBbus via bootloader.
 
 This FW uses EEPROM, however no programming of EEPROM is required. There should
 be just an empty EEPROM on fresh devices.
@@ -54,7 +50,7 @@ Text editor + `make`. No more, no less.
 
 ## See also
 
-* [MTB-UNI v4 schematics & pcb](https://github.com/kmzbrnoI/mtb-uni-4-ele)
+* [MTB-UNI v2 upgrade board schematics & pcb](https://github.com/kmzbrnoI/mtb-2-avr-pcb)
 * [MTBbus protocol](https://github.com/kmzbrnoI/mtbbus-protocol)
 
 ## License
