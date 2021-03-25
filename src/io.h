@@ -22,7 +22,8 @@
 #define PIN_LED_GREEN PB0
 #define PIN_LED_BLUE PB1
 
-#define PIN_BUTTON PB2
+// Warning: button pin conflict with SPI SS
+#define PIN_BUTTON PD5
 #define PIN_TEST_PAD PD4
 #define PIN_UART_DIR PD2
 
@@ -79,7 +80,7 @@ static inline void io_led_red_toggle() { io_led_red(!io_led_red_state()); }
 static inline void io_led_green_toggle() { io_led_green(!io_led_green_state()); }
 static inline void io_led_blue_toggle() { io_led_blue(!io_led_blue_state()); }
 
-static inline bool io_button() { return (PINB >> PIN_BUTTON) & 0x1; }
+static inline bool io_button() { return (PIND >> PIN_BUTTON) & 0x1; }
 
 static inline void io_testpad_set(bool state) {
 	if (state)

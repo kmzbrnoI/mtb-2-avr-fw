@@ -10,13 +10,13 @@ volatile uint8_t _address = 0;
 void io_init() {
 	DDRC |= (1 << PIN_LED_RED); // LED PC0 (red)
 	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE); // LED PB0 (green), PB1 (blue)
-	PORTB |= (1 << PIN_BUTTON); // button pull-up
+	PORTD |= (1 << PIN_BUTTON); // button pull-up
 
 	DDRD |= (1 << PIN_TEST_PAD) | (1 << PIN_UART_DIR); // testpad, UART direction
 	uart_in();
 	io_led_red_off(); // red LED is off in logical one
 
-	DDRB |= (1 << PB3) | (1 << PB5); // MOSI & SCK out
+	DDRB |= (1 << PB3) | (1 << PB5) | (1 << PB2); // MOSI & SCK & SS out
 	//PORTB |= (1 << PB4); // pull-up on MISO just for sure
 	DDRD |= (1 << PIN_OUTPUT_SET) | (1 << PIN_INPUT_LOAD);
 
