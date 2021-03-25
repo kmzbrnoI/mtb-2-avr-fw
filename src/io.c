@@ -4,13 +4,15 @@
 #include "common.h"
 
 void io_init() {
-	DDRC |= 0x01; // LED PC0 (red)
-	DDRB |= 0x03; // LED PB0 (green), PB1 (blue)
-	PORTB |= 0x04; // button pull-up
+	DDRC |= (1 << PIN_LED_RED); // LED PC0 (red)
+	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE); // LED PB0 (green), PB1 (blue)
+	PORTB |= (1 << PIN_BUTTON); // button pull-up
 
-	DDRD |= 0x14; // testpad, UART direction
+	DDRD |= (1 << PIN_TEST_PAD) | (1 << PIN_UART_DIR); // testpad, UART direction
 	uart_in();
 	io_led_red_off(); // red LED is off in logical one
+
+	DDRB |= (1 << PB3) | (1 << PB5); // MOSI & SCK out
 }
 
 bool io_get_input_raw(uint8_t inum) {

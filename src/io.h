@@ -18,7 +18,13 @@
 #define NO_OUTPUTS 16
 #define NO_INPUTS_ADDR 8
 
-#define INPUT_BUTTON PINB2
+#define PIN_LED_RED PC0
+#define PIN_LED_GREEN PB0
+#define PIN_LED_BLUE PB1
+
+#define PIN_BUTTON PB2
+#define PIN_TEST_PAD PD2
+#define PIN_UART_DIR PD4
 
 void io_init();
 
@@ -37,12 +43,12 @@ uint16_t io_get_outputs_raw();
 
 bool io_get_output_raw(uint8_t onum);
 
-static inline void io_led_red_on() { PORTC &= ~(1 << PC0); }
-static inline void io_led_red_off() { PORTC |= (1 << PC0); }
-static inline void io_led_green_on() { PORTB |= (1 << PB0); }
-static inline void io_led_green_off() { PORTB &= ~(1 << PB0); }
-static inline void io_led_blue_on() { PORTB |= (1 << PB1); }
-static inline void io_led_blue_off() { PORTB &= ~(1 << PB1); }
+static inline void io_led_red_on() { PORTC &= ~(1 << PIN_LED_RED); }
+static inline void io_led_red_off() { PORTC |= (1 << PIN_LED_RED); }
+static inline void io_led_green_on() { PORTB |= (1 << PIN_LED_GREEN); }
+static inline void io_led_green_off() { PORTB &= ~(1 << PIN_LED_GREEN); }
+static inline void io_led_blue_on() { PORTB |= (1 << PIN_LED_BLUE); }
+static inline void io_led_blue_off() { PORTB &= ~(1 << PIN_LED_BLUE); }
 
 static inline void io_led_red(bool state) {
 	if (state)
@@ -65,27 +71,27 @@ static inline void io_led_blue(bool state) {
 		io_led_blue_off();
 }
 
-static inline bool io_led_red_state() { return !((PORTC >> PC0) & 0x1); }
-static inline bool io_led_green_state() { return (PORTB >> PB0) & 0x1; }
-static inline bool io_led_blue_state() { return (PORTB >> PB1) & 0x1; }
+static inline bool io_led_red_state() { return !((PORTC >> PIN_LED_RED) & 0x1); }
+static inline bool io_led_green_state() { return (PORTB >> PIN_LED_GREEN) & 0x1; }
+static inline bool io_led_blue_state() { return (PORTB >> PIN_LED_BLUE) & 0x1; }
 
 static inline void io_led_red_toggle() { io_led_red(!io_led_red_state()); }
 static inline void io_led_green_toggle() { io_led_green(!io_led_green_state()); }
 static inline void io_led_blue_toggle() { io_led_blue(!io_led_blue_state()); }
 
-static inline bool io_button() { return (PINB >> 2) & 0x1; }
+static inline bool io_button() { return (PINB >> PIN_BUTTON) & 0x1; }
 
 static inline void io_testpad_set(bool state) {
 	if (state)
-		PORTD |= (1 << PD4);
+		PORTD |= (1 << PIN_TEST_PAD);
 	else
-		PORTD &= ~(1 << PD4);
+		PORTD &= ~(1 << PIN_TEST_PAD);
 }
 
-static inline bool io_testpad_get() { return (PORTD & PD2); }
+static inline bool io_testpad_get() { return ((PORTD >> PIN_TEST_PAD) & 0x1); }
 static inline void io_testpad_toggle() { io_testpad_set(!io_testpad_get()); }
 
-static inline void uart_out() { PORTD |= (1 << PD2); }
-static inline void uart_in() { PORTD &= ~(1 << PD2); }
+static inline void uart_out() { PORTD |= (1 << PIN_UART_DIR); }
+static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
 
 #endif
