@@ -3,6 +3,10 @@
 #include "io.h"
 #include "common.h"
 
+volatile uint16_t _outputs = 0;
+volatile uint16_t _inputs = 0;
+volatile uint8_t _address = 0;
+
 void io_init() {
 	DDRC |= (1 << PIN_LED_RED); // LED PC0 (red)
 	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE); // LED PB0 (green), PB1 (blue)
@@ -13,6 +17,10 @@ void io_init() {
 	io_led_red_off(); // red LED is off in logical one
 
 	DDRB |= (1 << PB3) | (1 << PB5); // MOSI & SCK out
+	//PORTB |= (1 << PB4); // pull-up on MISO just for sure
+	DDRD |= (1 << PIN_OUTPUT_SET) | (1 << PIN_INPUT_LOAD);
+
+	SPCR = (1 << SPE) | (1 << MSTR); // enable SPI, SPI master, frequency=f_osc/4
 }
 
 bool io_get_input_raw(uint8_t inum) {
@@ -20,11 +28,14 @@ bool io_get_input_raw(uint8_t inum) {
 }
 
 uint16_t io_get_inputs_raw() {
-	return 0; // TODO
+	return _inputs;
 }
 
 void io_set_output_raw(uint8_t onum, bool state) {
-	// TODO
+	if (state)
+		_outputs |= (1 << onum);
+	else
+		_outputs &= ~(1 << onum);
 }
 
 void io_set_outputs_raw(uint16_t state) {
@@ -32,18 +43,59 @@ void io_set_outputs_raw(uint16_t state) {
 }
 
 void io_set_outputs_raw_mask(uint16_t state, uint16_t mask) {
-	// TODO
-	/*state = (state & mask) | (io_get_outputs_raw() & (~mask));
-	uint8_t low = state & 0xFF;
-	uint8_t high = (state >> 8) & 0xFF;
-	PORTD = bit_reverse(low);
-	PORTC = bit_reverse(high);*/
+	_outputs = (state & mask) | (_outputs & (~mask));
 }
 
 uint16_t io_get_outputs_raw() {
-	return 0; // TODO
+	return _outputs;
 }
 
 bool io_get_output_raw(uint8_t onum) {
 	return (io_get_outputs_raw() >> onum) & 0x1;
+}
+
+uint8_t io_get_addr_raw() {
+	return _address;
+}
+
+static inline uint8_t switch_bits_03(uint8_t data) {
+	uint8_t res = data & 0xF6;
+	res |= ((data >> 3) & 1);
+	res |= ((data&1) << 3);
+	return res;
+}
+
+void io_shift_update() {
+	uint16_t buf_inputs = 0;
+	uint8_t read;
+
+	// Input load
+	PORTD |= (1 << PIN_INPUT_LOAD);
+	__asm__("nop");
+	__asm__("nop");
+
+	SPDR = 0;
+	while (!(SPSR & (1<<SPIF)));
+	read = SPDR;
+	buf_inputs = switch_bits_03(read);
+
+	SPDR = _outputs & 0xFF;
+	while (!(SPSR & (1<<SPIF)));
+	read = SPDR;
+	buf_inputs = switch_bits_03(read) << 8;
+
+	SPDR = _outputs >> 8;
+	while (!(SPSR & (1<<SPIF)));
+	read = SPDR;
+	_address = ~switch_bits_03(read);
+
+	// Output set
+	PORTD |= (1 << PIN_OUTPUT_SET);
+	__asm__("nop");
+	__asm__("nop");
+	PORTD &= ~(1 << PIN_OUTPUT_SET);
+
+	PORTD &= ~(1 << PIN_INPUT_LOAD);
+
+	_inputs = buf_inputs;
 }

@@ -73,8 +73,10 @@ int main() {
 			config_write = false;
 		}
 
+		io_shift_update();
+
 		wdt_reset();
-		_delay_ms(10);
+		_delay_us(200);
 	}
 }
 
@@ -98,6 +100,8 @@ static inline void init() {
 
 	config_load();
 	outputs_set_full(config_safe_state);
+
+	io_shift_update();
 
 	uint8_t _mtbbus_addr = io_get_addr_raw();
 	error_flags.bits.addr_zero = (_mtbbus_addr == 0);
@@ -305,5 +309,4 @@ void mtbbus_send_error(uint8_t code) {
 static inline void goto_bootloader() {
 	wdt_enable(WDTO_15MS);
 	while (true);
-	//__asm__ volatile ("ijmp" ::"z" (BOOTLOADER_ADDR));
 }

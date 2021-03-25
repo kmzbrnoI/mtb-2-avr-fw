@@ -23,18 +23,18 @@
 #define PIN_LED_BLUE PB1
 
 #define PIN_BUTTON PB2
-#define PIN_TEST_PAD PD2
-#define PIN_UART_DIR PD4
+#define PIN_TEST_PAD PD4
+#define PIN_UART_DIR PD2
+
+#define PIN_OUTPUT_SET PD3
+#define PIN_INPUT_LOAD PD7
 
 void io_init();
 
 bool io_get_input_raw(uint8_t inum);
 uint16_t io_get_inputs_raw();
 
-static inline uint8_t io_get_addr_raw() {
-	// TODO
-	return 1;
-}
+uint8_t io_get_addr_raw();
 
 void io_set_output_raw(uint8_t onum, bool state);
 void io_set_outputs_raw(uint16_t state);
@@ -93,5 +93,7 @@ static inline void io_testpad_toggle() { io_testpad_set(!io_testpad_get()); }
 
 static inline void uart_out() { PORTD |= (1 << PIN_UART_DIR); }
 static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
+
+void io_shift_update();
 
 #endif
