@@ -32,6 +32,7 @@
 
 #define PIN_IR_MA PC3
 #define PIN_IR_MB PC2
+#define PIN_IR_PULSE PC1
 
 void io_init();
 
@@ -101,5 +102,25 @@ static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
 void io_shift_update();
 
 extern bool inputs_disabled;
+
+static inline void io_ir_pulse(bool state) {
+	// true = IR active, false = IR inactive
+	if (state)
+		PORTC &= ~(1 << PIN_IR_PULSE);
+	else
+		PORTC |= (1 << PIN_IR_PULSE);
+}
+
+static inline void io_ir_channel(uint8_t channel) {
+	if (channel & 1)
+		PORTC |= (1 << PIN_IR_MA);
+	else
+		PORTC &= ~(1 << PIN_IR_MA);
+
+	if (channel & 2)
+		PORTC |= (1 << PIN_IR_MB);
+	else
+		PORTC &= ~(1 << PIN_IR_MB);
+}
 
 #endif

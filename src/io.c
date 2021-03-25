@@ -29,7 +29,8 @@ void io_init() {
 	if (!inputs_disabled) {
 		// Configure IR outputs
 		PORTC &= ~(1 << PIN_IR_MA);
-		DDRC |= (1 << PIN_IR_MA) | (1 << PIN_IR_MB);
+		DDRC |= (1 << PIN_IR_MA) | (1 << PIN_IR_MB) | (1 << PIN_IR_PULSE);
+		PORTC |= (1 << PIN_IR_PULSE); // idle high
 	}
 }
 

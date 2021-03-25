@@ -75,6 +75,11 @@ int main() {
 
 		io_shift_update();
 
+		io_ir_channel(1);
+		io_ir_pulse(true);
+		_delay_us(1);
+		io_ir_pulse(false);
+
 		wdt_reset();
 		_delay_us(50);
 	}
@@ -216,11 +221,13 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_output_buf[7] = CONFIG_PROTO_MINOR;
 		mtbbus_send_buf_autolen();
 
-	} else if ((command_code == MTBBUS_CMD_MOSI_SET_CONFIG) && (data_len >= 24) && (!broadcast)) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_SET_CONFIG) && (data_len >= 26) && (!broadcast)) {
 		for (size_t i = 0; i < NO_OUTPUTS; i++)
 			config_safe_state[i] = data[i];
 		for (size_t i = 0; i < NO_OUTPUTS/2; i++)
 			config_inputs_delay[i] = data[NO_OUTPUTS+i];
+		config_ir_inputs = data[24] << 8;
+		config_ir_inputs |= data[25];
 		config_write = true;
 		mtbbus_send_ack();
 
@@ -230,6 +237,8 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			mtbbus_output_buf[1+i] = config_safe_state[i];
 		for (size_t i = 0; i < NO_OUTPUTS/2; i++)
 			mtbbus_output_buf[1+NO_OUTPUTS+i] = config_inputs_delay[i];
+		data[25] = config_ir_inputs >> 8;
+		data[26] = config_ir_inputs & 0xFF;
 		mtbbus_send_buf_autolen();
 
 	} else if ((command_code == MTBBUS_CMD_MOSI_BEACON) && (data_len >= 1)) {
