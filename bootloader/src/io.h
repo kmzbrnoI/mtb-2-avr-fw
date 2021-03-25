@@ -8,29 +8,26 @@
 #include <stdint.h>
 #include <avr/io.h>
 
-#define INPUT_BUTTON PINB2
+#define PIN_LED_RED PC0
+#define PIN_LED_GREEN PB0
+#define PIN_LED_BLUE PB1
 
-static inline void io_init() {
-	DDRC |= 0x01; // LED PC0 (red)
-	DDRB |= 0x03; // LED PB0 (green), PB1 (blue)
-	PORTB |= 0x04; // button pull-up
+#define PIN_BUTTON PD5
+#define PIN_TEST_PAD PD4
+#define PIN_UART_DIR PD2
+#define PIN_INPUT_SHIFT PD7
+#define PIN_OUTPUTS_DISABLE PD6
 
-	DDRD |= 0x14; // testpad, UART direction
-	PORTD &= ~(1 << PD2); // uart IN
-	PORTC |= (1 << PC0); // led RED off
-}
+void io_init();
 
-static inline uint8_t io_get_addr_raw() {
-	// TODO
-	return 1;
-}
+uint8_t io_get_addr_raw();
 
-static inline void io_led_red_on() { PORTC &= ~(1 << PC0); }
-static inline void io_led_red_off() { PORTC |= (1 << PC0); }
-static inline void io_led_green_on() { PORTB |= (1 << PB0); }
-static inline void io_led_green_off() { PORTB &= ~(1 << PB0); }
-static inline void io_led_blue_on() { PORTB |= (1 << PB1); }
-static inline void io_led_blue_off() { PORTB &= ~(1 << PB1); }
+static inline void io_led_red_on() { PORTC &= ~(1 << PIN_LED_RED); }
+static inline void io_led_red_off() { PORTC |= (1 << PIN_LED_RED); }
+static inline void io_led_green_on() { PORTB |= (1 << PIN_LED_GREEN); }
+static inline void io_led_green_off() { PORTB &= ~(1 << PIN_LED_GREEN); }
+static inline void io_led_blue_on() { PORTB |= (1 << PIN_LED_BLUE); }
+static inline void io_led_blue_off() { PORTB &= ~(1 << PIN_LED_BLUE); }
 
 static inline void io_led_red(bool state) {
 	if (state)
@@ -53,17 +50,22 @@ static inline void io_led_blue(bool state) {
 		io_led_blue_off();
 }
 
-static inline bool io_led_red_state() { return !((PORTC >> PC0) & 0x1); }
-static inline bool io_led_green_state() { return (PORTB >> PB0) & 0x1; }
-static inline bool io_led_blue_state() { return (PORTB >> PB1) & 0x1; }
+static inline bool io_led_red_state() { return !((PORTC >> PIN_LED_RED) & 0x1); }
+static inline bool io_led_green_state() { return (PORTB >> PIN_LED_GREEN) & 0x1; }
+static inline bool io_led_blue_state() { return (PORTB >> PIN_LED_BLUE) & 0x1; }
 
 static inline void io_led_red_toggle() { io_led_red(!io_led_red_state()); }
 static inline void io_led_green_toggle() { io_led_green(!io_led_green_state()); }
 static inline void io_led_blue_toggle() { io_led_blue(!io_led_blue_state()); }
 
-static inline bool io_button() { return (PINB >> 2) & 0x1; }
+static inline bool io_button() { return (PIND >> PIN_BUTTON) & 0x1; }
 
-static inline void uart_out() { PORTD |= (1 << PD2); }
-static inline void uart_in() { PORTD &= ~(1 << PD2); }
+static inline void uart_out() { PORTD |= (1 << PIN_UART_DIR); }
+static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
+
+static inline void outputs_enable() { PORTD &= ~(1 << PIN_OUTPUTS_DISABLE); }
+static inline void outputs_disable() { PORTD |= (1 << PIN_OUTPUTS_DISABLE); }
+
+void io_shift_update();
 
 #endif

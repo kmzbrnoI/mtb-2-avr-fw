@@ -112,6 +112,7 @@ static inline void _mtbbus_init() {
 	if (mtbbus_speed > MTBBUS_SPEED_115200)
 		mtbbus_speed = MTBBUS_SPEED_38400;
 
+	io_shift_update();
 	uint8_t _mtbbus_addr = io_get_addr_raw();
 	error_flags.bits.addr_zero = (_mtbbus_addr == 0);
 
