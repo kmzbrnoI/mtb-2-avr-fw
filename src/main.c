@@ -76,7 +76,7 @@ int main() {
 		io_shift_update();
 
 		wdt_reset();
-		_delay_us(200);
+		_delay_us(50);
 	}
 }
 
@@ -110,6 +110,7 @@ static inline void init() {
 
 	_delay_ms(50);
 
+	wdt_reset();
 	wdt_enable(WDTO_250MS);
 
 	sei(); // enable interrupts globally

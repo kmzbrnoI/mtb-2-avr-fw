@@ -30,6 +30,9 @@
 #define PIN_OUTPUT_SET PD3
 #define PIN_INPUT_LOAD PD7
 
+#define PIN_IR_MA PC3
+#define PIN_IR_MB PC2
+
 void io_init();
 
 bool io_get_input_raw(uint8_t inum);
@@ -96,5 +99,7 @@ static inline void uart_out() { PORTD |= (1 << PIN_UART_DIR); }
 static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
 
 void io_shift_update();
+
+extern bool inputs_disabled;
 
 #endif
