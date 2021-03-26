@@ -60,8 +60,8 @@ static inline void io_led_blue_toggle() { io_led_blue(!io_led_blue_state()); }
 
 static inline bool io_button() { return (PIND >> PIN_BUTTON) & 0x1; }
 
-static inline void uart_out() { PORTD |= (1 << PIN_UART_DIR); }
-static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
+void uart_out();
+void uart_in();
 
 static inline void outputs_enable() { PORTD &= ~(1 << PIN_OUTPUTS_DISABLE); }
 static inline void outputs_disable() { PORTD |= (1 << PIN_OUTPUTS_DISABLE); }

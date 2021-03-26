@@ -99,8 +99,8 @@ static inline void io_testpad_set(bool state) {
 static inline bool io_testpad_get() { return ((PORTD >> PIN_TEST_PAD) & 0x1); }
 static inline void io_testpad_toggle() { io_testpad_set(!io_testpad_get()); }
 
-static inline void uart_out() { PORTD |= (1 << PIN_UART_DIR); }
-static inline void uart_in() { PORTD &= ~(1 << PIN_UART_DIR); }
+void uart_out();
+void uart_in();
 
 void io_shift_update();
 void io_shift_load();
