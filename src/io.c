@@ -122,8 +122,11 @@ void io_shift_update() {
 
 	SPDR = _outputs >> 8;
 	while (!(SPSR & (1<<SPIF)));
-	read = SPDR;
-	_address = ~switch_bits_03(read);
+	read = ~SPDR;
+
+	// Address is connected to shift's input almost randomly... :(
+	_address = ((read & 0xF0) >> 2) | ((read & 0x8) >> 3) | ((read & 0x4) >> 1)
+		| ((read & 0x2) << 5) | ((read & 0x1) << 7);
 
 	// Output set
 	PORTD |= (1 << PIN_OUTPUT_SET);

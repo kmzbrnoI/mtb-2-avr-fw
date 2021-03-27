@@ -41,13 +41,6 @@ void io_init() {
 	outputs_disable();
 }
 
-static inline uint8_t switch_bits_03(uint8_t data) {
-	uint8_t res = data & 0xF6;
-	res |= ((data >> 3) & 1);
-	res |= ((data&1) << 3);
-	return res;
-}
-
 void io_shift_update() {
 	// Typical time of this function: 10 us
 	uint8_t read;
@@ -67,9 +60,12 @@ void io_shift_update() {
 
 	SPDR = 0;
 	while (!(SPSR & (1<<SPIF)));
-	read = SPDR;
+	read = ~SPDR;
 
-	_address = ~switch_bits_03(read);
+	// Address is connected to shift's input almost randomly... :(
+	_address = ((read & 0xF0) >> 2) | ((read & 0x8) >> 3) | ((read & 0x4) >> 1)
+		| ((read & 0x2) << 5) | ((read & 0x1) << 7);
+
 	PORTD &= ~(1 << PIN_INPUT_SHIFT);
 }
 
