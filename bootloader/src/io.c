@@ -4,8 +4,7 @@
 uint8_t _address;
 bool uart_out_high = false;
 
-void io_init() {
-	// Reset
+static inline void io_reset() {
 	SPCR = 0;
 	DDRB = 0;
 	DDRC = 0;
@@ -13,10 +12,14 @@ void io_init() {
 	PORTB = 0;
 	PORTC = 0;
 	PORTD = 0;
+}
 
-	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE); // LED PB0 (green), PB1 (blue)
-	DDRC |= (1 << PIN_LED_RED); // LED PC0 (red)
-	PORTD |= (1 << PIN_BUTTON); // button pull-up
+void io_init() {
+	io_reset();
+
+	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE);
+	DDRC |= (1 << PIN_LED_RED);
+	PORTD |= (1 << PIN_BUTTON); // pull-up
 
 	_delay_us(50); // wait for inputs to load
 
@@ -25,7 +28,7 @@ void io_init() {
 	uart_out_high = !((PIND >> PIN_UART_DIR) & 0x1);
 
 	uart_in();
-	DDRD |= (1 << PIN_TEST_PAD) | (1 << PIN_UART_DIR); // testpad, UART direction
+	DDRD |= (1 << PIN_TEST_PAD) | (1 << PIN_UART_DIR);
 	io_led_red_off();
 
 	DDRB |= (1 << PB3) | (1 << PB5) | (1 << PB2); // MOSI & SCK & SS out
@@ -33,7 +36,7 @@ void io_init() {
 	DDRD |= (1 << PIN_INPUT_SHIFT);
 	DDRD |= (1 << PIN_INPUT_SHIFT) | (1 << PIN_OUTPUTS_DISABLE);
 
-	SPCR = (1 << SPE) | (1 << MSTR); // enable SPI, SPI master, frequency=f_osc/4
+	SPCR = (1 << SPE) | (1 << MSTR) | (1 << CPOL); // enable SPI, SPI master, frequency=f_osc/4
 
 	outputs_disable();
 }
