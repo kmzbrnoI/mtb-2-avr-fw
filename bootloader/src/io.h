@@ -14,9 +14,12 @@
 
 #define PIN_BUTTON PD5
 #define PIN_TEST_PAD PD4
-#define PIN_UART_DIR PD2
 #define PIN_INPUT_SHIFT PD7
 #define PIN_OUTPUTS_DISABLE PD6
+
+#define PIN_UART_RX PD0
+#define PIN_UART_TX PD1
+#define PIN_UART_DIR PD2
 
 void io_init();
 

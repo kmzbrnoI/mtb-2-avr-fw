@@ -19,7 +19,7 @@ void io_init() {
 
 	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE);
 	DDRC |= (1 << PIN_LED_RED);
-	PORTD |= (1 << PIN_BUTTON); // pull-up
+	PORTD |= (1 << PIN_BUTTON) | (1 << PIN_UART_RX); // pull-up
 
 	_delay_us(50); // wait for inputs to load
 
@@ -28,7 +28,7 @@ void io_init() {
 	uart_out_high = !((PIND >> PIN_UART_DIR) & 0x1);
 
 	uart_in();
-	DDRD |= (1 << PIN_TEST_PAD) | (1 << PIN_UART_DIR);
+	DDRD |= (1 << PIN_TEST_PAD) | (1 << PIN_UART_DIR) | (1 << PIN_UART_TX);
 	io_led_red_off();
 
 	DDRB |= (1 << PB3) | (1 << PB5) | (1 << PB2); // MOSI & SCK & SS out

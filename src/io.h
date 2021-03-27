@@ -25,7 +25,6 @@
 // Warning: button pin conflict with SPI SS
 #define PIN_BUTTON PD5
 #define PIN_TEST_PAD PD4
-#define PIN_UART_DIR PD2
 
 #define PIN_OUTPUT_SET PD3
 #define PIN_INPUT_SHIFT PD7
@@ -34,6 +33,10 @@
 #define PIN_IR_MA PC3
 #define PIN_IR_MB PC2
 #define PIN_IR_PULSE PC1
+
+#define PIN_UART_RX PD0
+#define PIN_UART_TX PD1
+#define PIN_UART_DIR PD2
 
 #define IR_CHANNELS 4
 
