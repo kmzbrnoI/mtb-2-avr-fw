@@ -142,7 +142,7 @@ ISR(TIMER0_COMPA_vect) {
 	// Timer 1 @ 20 kHz (period 50 us)
 	static bool divider = false;
 
-	if (!inputs_disabled)
+	if ((!inputs_disabled) && (config_ir_support))
 		ir_update_50us();
 
 	if (divider) // 10 kHz (100 us)
@@ -307,6 +307,19 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			mtbbus_send_ack();
 		}
 
+	} else if ((command_code == MTBBUS_CMD_MOSI_SPECIFIC) && (data_len >= 2)) {
+		if (data[0] == 0x01) {
+			if (data[1] > 1)
+				config_ir_support = is_ir_support_measure();
+			else
+				config_ir_support = data[1];
+			config_write = true;
+			mtbbus_send_ack();
+			led_red_ok();
+		} else {
+			mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
+		}
+
 	} else {
 		mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
 	}
@@ -355,16 +368,14 @@ bool is_ir_support_measure() {
 	PORTC &= ~(1 << PIN_IR_PULSE);
 	_delay_us(1); // wait for capacitor to discharge
 
-	io_testpad_set(true);
 	DDRC &= ~(1 << PIN_IR_PULSE);
 	PORTC |= (1 << PIN_IR_PULSE); // enable pull-up, slowly charge capacitor up
 	_delay_us(3);
 
-	io_testpad_set(false);
 	bool is = !((PINC >> PIN_IR_PULSE) & 0x1);
 
 	// restore output
-	PORTC &= (1 << PIN_IR_PULSE);
+	PORTC &= ~(1 << PIN_IR_PULSE);
 	DDRC |= (1 << PIN_IR_PULSE);
 
 	return is;
