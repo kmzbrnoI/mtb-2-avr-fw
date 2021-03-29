@@ -30,6 +30,7 @@ static inline void leds_update();
 static inline void goto_bootloader();
 static inline void update_mtbbus_polarity();
 void led_red_ok();
+static bool is_ir_support_measure();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
@@ -119,6 +120,12 @@ static inline void init() {
 	mtbbus_on_receive = mtbbus_received;
 
 	update_mtbbus_polarity();
+
+	if (config_ir_support > 1) {
+		// measure ir cupport automatically
+		config_ir_support = is_ir_support_measure();
+		config_save_ir_support();
+	}
 
 	_delay_ms(50);
 
@@ -339,4 +346,26 @@ static inline void goto_bootloader() {
 
 static inline void update_mtbbus_polarity() {
 	error_flags.bits.bad_mtbbus_polarity = !((PIND >> PIN_UART_RX) & 0x1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool is_ir_support_measure() {
+	DDRC |= (1 << PIN_IR_PULSE);
+	PORTC &= ~(1 << PIN_IR_PULSE);
+	_delay_us(1); // wait for capacitor to discharge
+
+	io_testpad_set(true);
+	DDRC &= ~(1 << PIN_IR_PULSE);
+	PORTC |= (1 << PIN_IR_PULSE); // enable pull-up, slowly charge capacitor up
+	_delay_us(3);
+
+	io_testpad_set(false);
+	bool is = !((PINC >> PIN_IR_PULSE) & 0x1);
+
+	// restore output
+	PORTC &= (1 << PIN_IR_PULSE);
+	DDRC |= (1 << PIN_IR_PULSE);
+
+	return is;
 }

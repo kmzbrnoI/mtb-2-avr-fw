@@ -13,10 +13,12 @@ extern uint8_t config_inputs_delay[NO_OUTPUTS/2];
 extern bool config_write;
 extern uint8_t config_mtbbus_speed;
 extern uint16_t config_ir_inputs;
+extern uint8_t config_ir_support;
 
 // Warning: these functions take long time to execute
 void config_load();
 void config_save();
+void config_save_ir_support();
 
 void config_boot_fwupgd();
 void config_boot_normal();

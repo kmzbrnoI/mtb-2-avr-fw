@@ -7,11 +7,13 @@ uint8_t config_inputs_delay[NO_OUTPUTS/2];
 bool config_write = false;
 uint8_t config_mtbbus_speed;
 uint16_t config_ir_inputs;
+uint8_t config_ir_support;
 
 #define EEPROM_ADDR_VERSION       ((uint8_t*)0x00)
 #define EEPROM_ADDR_MTBBUS_SPEED  ((uint8_t*)0x01)
 #define EEPROM_ADDR_BOOT          ((uint8_t*)0x03)
 #define EEPROM_ADDR_IR_INPUTS     ((uint16_t*)0x04)
+#define EEPROM_ADDR_IR_SUPPORT    ((uint16_t*)0x05)
 #define EEPROM_ADDR_SAFE_STATE    ((void*)0x10)
 #define EEPROM_ADDR_INPUTS_DELAY  ((void*)0x20)
 
@@ -26,6 +28,7 @@ void config_load() {
 		for (size_t i = 0; i < NO_OUTPUTS/2; i++)
 			config_inputs_delay[i] = 0;
 		config_ir_inputs = 0;
+		config_ir_support = 0xFF;
 		config_save();
 		return;
 	}
@@ -41,6 +44,7 @@ void config_load() {
 	eeprom_read_block(config_safe_state, EEPROM_ADDR_SAFE_STATE, NO_OUTPUTS);
 	eeprom_read_block(config_inputs_delay, EEPROM_ADDR_INPUTS_DELAY, NO_OUTPUTS/2);
 	config_ir_inputs = eeprom_read_word(EEPROM_ADDR_IR_INPUTS);
+	config_ir_support = eeprom_read_word(EEPROM_ADDR_IR_SUPPORT);
 }
 
 void config_save() {
@@ -49,6 +53,7 @@ void config_save() {
 	eeprom_update_block(config_safe_state, EEPROM_ADDR_SAFE_STATE, NO_OUTPUTS);
 	eeprom_update_block(config_inputs_delay, EEPROM_ADDR_INPUTS_DELAY, NO_OUTPUTS/2);
 	eeprom_update_word(EEPROM_ADDR_IR_INPUTS, config_ir_inputs);
+	config_save_ir_support();
 }
 
 uint8_t input_delay(uint8_t input) {
@@ -64,4 +69,8 @@ void config_boot_fwupgd() {
 
 void config_boot_normal() {
 	eeprom_update_byte(EEPROM_ADDR_BOOT, CONFIG_BOOT_NORMAL);
+}
+
+void config_save_ir_support() {
+	eeprom_update_word(EEPROM_ADDR_IR_SUPPORT, config_ir_support);
 }
