@@ -244,13 +244,17 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_output_buf[7] = CONFIG_PROTO_MINOR;
 		mtbbus_send_buf_autolen();
 
-	} else if ((command_code == MTBBUS_CMD_MOSI_SET_CONFIG) && (data_len >= 26) && (!broadcast)) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_SET_CONFIG) && (data_len >= 24) && (!broadcast)) {
 		for (size_t i = 0; i < NO_OUTPUTS; i++)
 			config_safe_state[i] = data[i];
 		for (size_t i = 0; i < NO_OUTPUTS/2; i++)
 			config_inputs_delay[i] = data[NO_OUTPUTS+i];
-		config_ir_inputs = data[24] << 8;
-		config_ir_inputs |= data[25];
+		if (data_len >= 26) {
+			config_ir_inputs = data[24] << 8;
+			config_ir_inputs |= data[25];
+		} else {
+			config_ir_inputs = 0;
+		}
 		config_write = true;
 		mtbbus_send_ack();
 
