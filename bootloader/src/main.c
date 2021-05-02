@@ -2,7 +2,6 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#include <avr/wdt.h>
 #include <avr/eeprom.h>
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
@@ -65,7 +64,12 @@ int main() {
 	cli();
 	MCUCR = (1 << IVCE);
 	MCUCR = (1 << IVSEL); // move interrupts to bootloader
-	wdt_disable();
+
+	// Disable watchdog
+	MCUSR &= ~(1<<WDRF);
+	WDTCSR |= (1<<WDCE) | (1<<WDE);
+	WDTCSR = 0x00;
+
 	io_init();
 
 	io_led_red_on();

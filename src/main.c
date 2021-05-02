@@ -92,6 +92,12 @@ int main() {
 }
 
 static inline void init() {
+	// Disable watchdog
+	cli();
+	MCUSR &= ~(1<<WDRF);
+	WDTCSR |= (1<<WDCE) | (1<<WDE);
+	WDTCSR = 0x00;
+
 	io_init();
 	io_led_red_on();
 	io_led_green_on();
@@ -129,7 +135,6 @@ static inline void init() {
 
 	_delay_ms(50);
 
-	wdt_reset();
 	wdt_enable(WDTO_250MS);
 
 	sei(); // enable interrupts globally
