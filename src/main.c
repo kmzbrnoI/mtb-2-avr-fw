@@ -328,7 +328,8 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			else
 				config_ir_support = data[1];
 			config_write = true;
-			mtbbus_send_ack();
+			if (!broadcast)
+				mtbbus_send_ack();
 			led_red_ok();
 		} else {
 			mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
