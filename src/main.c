@@ -27,7 +27,7 @@ void mtbbus_send_ack();
 void mtbbus_send_inputs(uint8_t message_code);
 void mtbbus_send_error(uint8_t code);
 static inline void leds_update();
-static inline void goto_bootloader();
+void goto_bootloader();
 static inline void update_mtbbus_polarity();
 void led_red_ok();
 static bool is_ir_support_measure();
@@ -352,7 +352,7 @@ void mtbbus_send_error(uint8_t code) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static inline void goto_bootloader() {
+void goto_bootloader() {
 	wdt_enable(WDTO_15MS);
 	while (true);
 }
