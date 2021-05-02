@@ -133,7 +133,8 @@ static inline void init() {
 		config_save_ir_support();
 	}
 
-	_delay_ms(50);
+	WDTCSR |= (1<<WDCE) | (1<<WDE);
+	WDTCSR = (1<<WDE) | (1 << WDP2);
 
 	wdt_enable(WDTO_250MS);
 
