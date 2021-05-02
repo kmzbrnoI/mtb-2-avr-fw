@@ -181,9 +181,9 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_set_speed(data[0]);
 
 	} else if ((command_code == MTBBUS_CMD_MOSI_WRITE_FLASH) && (data_len >= 66)) {
-		uint8_t _page = data[0];
-		uint8_t _subpage = data[1];
-		if ((_subpage % 64 != 0) || (_page >= 240)) {
+		uint8_t _page = (data[0] << 1) | (data[1] >> 7);
+		uint8_t _subpage = data[1] & 0x7F;
+		if ((_subpage % 64 != 0) || (_page >= 224)) {
 			mtbbus_send_error(MTBBUS_ERROR_BAD_ADDRESS);
 			return;
 		}
