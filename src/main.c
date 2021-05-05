@@ -31,6 +31,7 @@ void goto_bootloader();
 static inline void update_mtbbus_polarity();
 void led_red_ok();
 static bool is_ir_support_measure();
+void mtbbus_free();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
@@ -56,6 +57,8 @@ typedef union {
 error_flags_t error_flags = {0};
 
 volatile bool beacon = false;
+volatile bool inputs_debounce_to_update = false;
+volatile bool scom_to_update = false;
 
 #define LED_BLUE_BEACON_ON 100
 #define LED_BLUE_BEACON_OFF 50
@@ -72,6 +75,15 @@ int main() {
 	init();
 
 	while (true) {
+		if (inputs_debounce_to_update) {
+			inputs_debounce_update();
+			inputs_debounce_to_update = false;
+		}
+		if (ir_debounce_to_update) {
+			ir_debounce_update();
+			ir_debounce_to_update = false;
+		}
+
 		if (config_write) {
 			config_save();
 			config_write = false;
@@ -124,6 +136,7 @@ static inline void init() {
 	error_flags.bits.addr_zero = (_mtbbus_addr == 0);
 	mtbbus_init(_mtbbus_addr, config_mtbbus_speed);
 	mtbbus_on_receive = mtbbus_received;
+	mtbbus_on_free = mtbbus_free;
 
 	update_mtbbus_polarity();
 
@@ -144,21 +157,30 @@ static inline void init() {
 	io_led_blue_off();
 }
 
+void mtbbus_free() {
+	if (scom_to_update) {
+		scom_update();
+		scom_to_update = false;
+	}
+}
+
 ISR(TIMER0_COMPA_vect) {
 	// Timer 1 @ 20 kHz (period 50 us)
-	static bool divider = false;
+	static size_t counter = 0;
 
 	if ((!inputs_disabled) && (config_ir_support))
 		ir_update_50us();
 
-	if (divider) // 10 kHz (100 us)
-		inputs_debounce_update();
-	divider = !divider;
+	counter++;
+	if (counter >= 10) { // 2 kHz (500 us)
+		inputs_debounce_to_update = true;
+		counter = 0;
+	}
 }
 
 ISR(TIMER1_COMPA_vect) {
 	// Timer 3 @ 100 Hz (period 10 ms)
-	scom_update();
+	scom_to_update = true;
 	outputs_update();
 	inputs_fall_update();
 	leds_update();

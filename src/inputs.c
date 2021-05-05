@@ -10,7 +10,7 @@ volatile uint16_t inputs_old = 0;
 
 bool btn_pressed = false;
 
-#define DEBOUNCE_THRESHOLD 100 // 10 ms
+#define DEBOUNCE_THRESHOLD 20 // 10 ms
 #define IR_DEBOUNCE_THRESHOLD 5 // 5 IR ticks
 volatile uint8_t _inputs_debounce_counter[NO_INPUTS] = {0, };
 volatile uint8_t _inputs_fall_counter[NO_INPUTS] = {0, };
@@ -112,7 +112,7 @@ static void _inputs_button_debuounce_update() {
 	if (state & 0x01) {
 		if (_btn_debounce_counter > 0) {
 			_btn_debounce_counter--;
-			if ((_btn_debounce_counter) == 0 && (btn_pressed)) {
+			if ((_btn_debounce_counter == 0) && (btn_pressed)) {
 				btn_pressed = false;
 				btn_on_depressed();
 			}

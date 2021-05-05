@@ -21,6 +21,7 @@ uint8_t mtbbus_addr;
 uint8_t mtbbus_speed;
 void (*mtbbus_on_receive)(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len) = NULL;
 void (*mtbbus_on_sent)() = NULL;
+void (*mtbbus_on_free)() = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -156,6 +157,9 @@ static inline void _mtbbus_received_ninth(uint8_t data) {
 		receiving = true;
 		mtbbus_input_buf_size = 0;
 		received_crc = crc16modbus_byte(0, received_addr);
+	} else {
+		if (mtbbus_on_free != NULL)
+			mtbbus_on_free();
 	}
 }
 
@@ -173,11 +177,15 @@ static inline void _mtbbus_received_non_ninth(uint8_t data) {
 	if (mtbbus_input_buf_size >= mtbbus_input_buf[0]+3) {
 		// whole message received
 		uint16_t msg_crc = (mtbbus_input_buf[mtbbus_input_buf_size-1] << 8) | (mtbbus_input_buf[mtbbus_input_buf_size-2]);
+
 		if (received_crc == msg_crc) {
 			if (mtbbus_on_receive != NULL)
 				mtbbus_on_receive(received_addr == 0, mtbbus_input_buf[1],
 				                  mtbbus_input_buf+2, mtbbus_input_buf_size-3);
 		}
+
+		/*if (received_crc == 0x61E1)
+			io_testpad_toggle();*/
 
 		// Prepare for next receiving from XpressNET device
 		receiving = false;
