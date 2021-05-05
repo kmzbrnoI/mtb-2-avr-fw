@@ -225,6 +225,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		io_led_green_on();
 		led_gr_counter = LED_GR_ON;
 	}
+	_delay_us(2);
 
 	if ((!broadcast) && (command_code == MTBBUS_CMD_MOSI_MODULE_INQUIRY) && (data_len >= 1)) {
 		static bool last_input_changed = false;
