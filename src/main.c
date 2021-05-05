@@ -59,6 +59,7 @@ error_flags_t error_flags = {0};
 volatile bool beacon = false;
 volatile bool inputs_debounce_to_update = false;
 volatile bool scom_to_update = false;
+volatile bool outputs_changed_when_setting_scom = false;
 
 #define LED_BLUE_BEACON_ON 100
 #define LED_BLUE_BEACON_OFF 50
@@ -75,6 +76,13 @@ int main() {
 	init();
 
 	while (true) {
+		if (scom_to_update) {
+			outputs_changed_when_setting_scom = false;
+			scom_update();
+			scom_to_update = false;
+			if (outputs_changed_when_setting_scom)
+				outputs_apply_state();
+		}
 		if (inputs_debounce_to_update) {
 			inputs_debounce_update();
 			inputs_debounce_to_update = false;
@@ -157,12 +165,7 @@ static inline void init() {
 	io_led_blue_off();
 }
 
-void mtbbus_free() {
-	if (scom_to_update) {
-		scom_update();
-		scom_to_update = false;
-	}
-}
+void mtbbus_free() {}
 
 ISR(TIMER0_COMPA_vect) {
 	// Timer 1 @ 20 kHz (period 50 us)
@@ -308,6 +311,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 
 	} else if ((command_code == MTBBUS_CMD_MOSI_SET_OUTPUT) && (data_len >= 4) && (!broadcast)) {
 		outputs_set_zipped(data, data_len);
+		outputs_changed_when_setting_scom = true;
 
 		mtbbus_output_buf[0] = data_len+1;
 		mtbbus_output_buf[1] = MTBBUS_CMD_MISO_OUTPUT_SET;
