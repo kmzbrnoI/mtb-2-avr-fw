@@ -36,10 +36,10 @@ static inline void _mtbbus_received_non_ninth(uint8_t data);
 void mtbbus_init(uint8_t addr, uint8_t speed) {
 	mtbbus_addr = addr;
 
+	UCSR0A = _BV(MPCM0); // Mutli-processor mode, receive onyl if 9. bit = 1
 	mtbbus_set_speed(speed);
 
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00); // 9-bit data
-	UCSR0A = _BV(MPCM0); // Mutli-processor mode, receive onyl if 9. bit = 1
 	UCSR0B = _BV(RXCIE0) | _BV(TXCIE0) | _BV(UCSZ02) | _BV(RXEN0) | _BV(TXEN0);  // RX, TX enable; RX, TX interrupt enable
 }
 
@@ -48,14 +48,18 @@ void mtbbus_set_speed(uint8_t speed) {
 	mtbbus_speed = speed;
 	UBRR0H = 0;
 
-	if (speed == MTBBUS_SPEED_115200)
+	if (speed == MTBBUS_SPEED_460800)
+		UBRR0L = 3;
+	else if (speed == MTBBUS_SPEED_230400)
 		UBRR0L = 7;
-	else if (speed == MTBBUS_SPEED_57600)
+	else if (speed == MTBBUS_SPEED_115200)
 		UBRR0L = 15;
+	else if (speed == MTBBUS_SPEED_57600)
+		UBRR0L = 31;
 	else
-		UBRR0L = 23; // 38400 Bd
+		UBRR0L = 47; // 38400 Bd
 
-	UCSR0A &= ~_BV(U2X0);
+	UCSR0A |= _BV(U2X0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -36,6 +36,8 @@ extern void (*mtbbus_on_free)();
 #define MTBBUS_SPEED_38400 0x01
 #define MTBBUS_SPEED_57600 0x02
 #define MTBBUS_SPEED_115200 0x03
+#define MTBBUS_SPEED_230400 0x04
+#define MTBBUS_SPEED_460800 0x05
 
 void mtbbus_init(uint8_t addr, uint8_t speed);
 void mtbbus_set_speed(uint8_t speed);
