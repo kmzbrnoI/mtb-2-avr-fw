@@ -13,7 +13,7 @@ uint8_t config_ir_support;
 #define EEPROM_ADDR_MTBBUS_SPEED  ((uint8_t*)0x01)
 #define EEPROM_ADDR_BOOT          ((uint8_t*)0x03)
 #define EEPROM_ADDR_IR_INPUTS     ((uint16_t*)0x04)
-#define EEPROM_ADDR_IR_SUPPORT    ((uint16_t*)0x05)
+#define EEPROM_ADDR_IR_SUPPORT    ((uint16_t*)0x06)
 #define EEPROM_ADDR_SAFE_STATE    ((void*)0x10)
 #define EEPROM_ADDR_INPUTS_DELAY  ((void*)0x20)
 

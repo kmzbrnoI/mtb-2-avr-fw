@@ -255,6 +255,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 	if ((!broadcast) && (command_code == MTBBUS_CMD_MOSI_MODULE_INQUIRY) && (data_len >= 1)) {
 		static bool last_input_changed = false;
 		bool last_ok = data[0] & 0x01;
+
 		if ((inputs_logic_state != inputs_old) || (last_input_changed && !last_ok)) {
 			// Send inputs changed
 			last_input_changed = true;
