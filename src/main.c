@@ -154,10 +154,9 @@ static inline void init() {
 		config_save_ir_support();
 	}
 
-	WDTCSR |= (1<<WDCE) | (1<<WDE);
-	WDTCSR = (1<<WDE) | (1 << WDP2);
-	wdt_enable(WDTO_250MS);
 	_delay_ms(50);
+
+	wdt_enable(WDTO_250MS);
 
 	sei(); // enable interrupts globally
 	io_led_red_off();
