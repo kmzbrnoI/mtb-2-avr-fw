@@ -34,7 +34,7 @@ static void mtbbus_send_error(uint8_t code);
 
 #define CONFIG_MODULE_TYPE 0x15
 #define CONFIG_FW_MAJOR 1
-#define CONFIG_FW_MINOR 0
+#define CONFIG_FW_MINOR 1
 #define CONFIG_PROTO_MAJOR 4
 #define CONFIG_PROTO_MINOR 0
 
@@ -232,7 +232,8 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_send_ack();
 
 	} else {
-		mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
+		if (!broadcast)
+			mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
 	}
 }
 
