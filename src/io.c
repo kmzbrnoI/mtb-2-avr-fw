@@ -110,7 +110,6 @@ void io_shift_update() {
 	__asm__("nop");
 
 	SPDR = 0;
-	read = SPDR;
 	while (!(SPSR & (1<<SPIF)));
 	read = SPDR;
 	buf_inputs = switch_bits_03(read);
