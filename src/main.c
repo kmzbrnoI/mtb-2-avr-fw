@@ -244,6 +244,9 @@ void btn_on_depressed() {}
 ///////////////////////////////////////////////////////////////////////////////
 
 void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len) {
+	if (!inputs_scanned)
+		return;
+
 	error_flags.bits.bad_mtbbus_polarity = false;
 	if (led_gr_counter == 0) {
 		io_led_green_on();

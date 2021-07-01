@@ -19,6 +19,8 @@ void btn_on_depressed();
 // You may use this variable for any purpose, this unit does not work with it.
 extern volatile uint16_t inputs_old;
 
+extern volatile bool inputs_scanned;
+
 // This function should be called each 100 us
 void inputs_debounce_update();
 void ir_debounce_update();
