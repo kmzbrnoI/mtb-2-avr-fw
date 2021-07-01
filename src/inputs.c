@@ -17,7 +17,7 @@ volatile uint8_t _inputs_fall_counter[NO_INPUTS] = {0, };
 volatile uint8_t _btn_debounce_counter = 0;
 
 
-static void _inputs_button_debuounce_update();
+static void _inputs_button_debounce_update();
 
 void inputs_debounce_update() {
 	uint16_t state = ~io_get_inputs_raw();
@@ -56,7 +56,7 @@ void inputs_debounce_update() {
 		irs >>= 1;
 	}
 
-	_inputs_button_debuounce_update();
+	_inputs_button_debounce_update();
 }
 
 void ir_debounce_update() {
@@ -107,7 +107,7 @@ void inputs_fall_update() {
 	}
 }
 
-static void _inputs_button_debuounce_update() {
+static void _inputs_button_debounce_update() {
 	bool state = io_button();
 	if (state & 0x01) {
 		if (_btn_debounce_counter > 0) {
