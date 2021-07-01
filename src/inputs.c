@@ -7,7 +7,6 @@
 volatile uint16_t inputs_logic_state = 0;
 volatile uint16_t inputs_debounced_state = 0;
 volatile uint16_t inputs_old = 0;
-volatile bool inputs_scanned = false;
 
 bool btn_pressed = false;
 
@@ -16,19 +15,12 @@ bool btn_pressed = false;
 volatile uint8_t _inputs_debounce_counter[NO_INPUTS] = {0, };
 volatile uint8_t _inputs_fall_counter[NO_INPUTS] = {0, };
 volatile uint8_t _btn_debounce_counter = 0;
-volatile uint8_t _first_scan_counter = 0;
 
 static void _inputs_button_debounce_update();
 
 void inputs_debounce_update() {
 	uint16_t state = ~io_get_inputs_raw();
 	uint16_t irs = config_ir_inputs;
-
-	if (_first_scan_counter < 2*DEBOUNCE_THRESHOLD) {
-		_first_scan_counter++;
-		if (_first_scan_counter == 2*DEBOUNCE_THRESHOLD)
-			inputs_scanned = true;
-	}
 
 	for (size_t i = 0; i < NO_INPUTS; i++) {
 		if ((irs&1) == 0) {
