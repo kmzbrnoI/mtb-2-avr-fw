@@ -8,7 +8,7 @@
 
 uint16_t ir_state = 0;
 bool ir_shift_disable = false;
-void (*on_shift_scanned)() = NULL;
+void (*volatile on_shift_scanned)() = NULL;
 volatile size_t pwri = 0;
 volatile uint8_t inputs_active = 0;
 volatile bool ir_debounce_to_update = false;
