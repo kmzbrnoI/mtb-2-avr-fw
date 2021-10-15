@@ -51,6 +51,7 @@ typedef union {
 	struct {
 		bool addr_zero : 1;
 		bool bad_mtbbus_polarity : 1;
+		bool missed_timer : 1;
 	} bits;
 	uint8_t all;
 } error_flags_t;
@@ -188,6 +189,9 @@ ISR(TIMER0_COMPA_vect) {
 
 ISR(TIMER1_COMPA_vect) {
 	// Timer 3 @ 100 Hz (period 10 ms)
+	if ((TCNT1H > 0) & (TCNT1H < OCR1AH))
+		error_flags.bits.missed_timer = true;
+
 	scom_to_update = true;
 	outputs_update();
 	inputs_fall_update();
