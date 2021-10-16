@@ -37,6 +37,18 @@ static inline void on_initialized();
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
 
+typedef union {
+	struct {
+		bool porf : 1;
+		bool extrf : 1;
+		bool borf : 1;
+		bool wdrf : 1;
+	} bits;
+	uint8_t all;
+} mcusr_t;
+
+mcusr_t mcusr;
+
 #define LED_GR_ON 5
 #define LED_GR_OFF 2
 volatile uint8_t led_gr_counter = 0;
@@ -52,6 +64,7 @@ typedef union {
 		bool addr_zero : 1;
 		bool bad_mtbbus_polarity : 1;
 		bool missed_timer : 1;
+		bool bad_reset : 1;
 	} bits;
 	uint8_t all;
 } error_flags_t;
@@ -120,9 +133,25 @@ int main() {
 static inline void init() {
 	// Disable watchdog
 	cli();
-	MCUSR &= ~(1<<WDRF);
 	WDTCSR |= (1<<WDCE) | (1<<WDE);
 	WDTCSR = 0x00;
+
+	// Check reset flags
+
+	uint16_t bootloader_version = config_bootloader_version();
+	if ((bootloader_version >= 0x0102) && (bootloader_version != 0xFFFF))
+		mcusr.all = config_mcusr();
+	else
+		mcusr.all = MCUSR;
+	MCUSR = 0;
+
+	if (config_is_int_wdrf()) {
+		mcusr.bits.wdrf = false;
+		config_int_wdrf(false);
+	}
+	mcusr.bits.borf = false; // brownout detects basically all power-on resets
+	if (mcusr.all > 1)
+		error_flags.bits.bad_reset = true;
 
 	io_init();
 	io_led_red_on();
@@ -290,7 +319,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_output_buf[0] = 7;
 		mtbbus_output_buf[1] = MTBBUS_CMD_MISO_MODULE_INFO;
 		mtbbus_output_buf[2] = CONFIG_MODULE_TYPE;
-		mtbbus_output_buf[3] = 0x00; // module flags
+		mtbbus_output_buf[3] = (mcusr.bits.wdrf << 2) | (mcusr.bits.extrf << 3); // module flags
 		mtbbus_output_buf[4] = CONFIG_FW_MAJOR;
 		mtbbus_output_buf[5] = CONFIG_FW_MINOR;
 		mtbbus_output_buf[6] = CONFIG_PROTO_MAJOR;
@@ -418,6 +447,7 @@ void mtbbus_send_error(uint8_t code) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void goto_bootloader() {
+	config_int_wdrf(true);
 	wdt_enable(WDTO_15MS);
 	while (true);
 }
