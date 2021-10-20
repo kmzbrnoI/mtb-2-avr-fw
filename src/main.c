@@ -33,6 +33,13 @@ void led_red_ok();
 static bool is_ir_support_measure();
 void mtbbus_free();
 static inline void on_initialized();
+static inline bool mtbbus_addressed();
+static inline void btn_short_press();
+static inline void btn_long_press();
+static inline void autodetect_mtbbus_speed();
+static inline void autodetect_mtbbus_speed_stop();
+void mtbbus_auto_speed_next();
+static inline void mtbbus_auto_speed_received();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
@@ -88,6 +95,16 @@ __attribute__((used, section(".fwattr"))) struct {
 volatile bool initialized = false;
 volatile uint8_t _init_counter = 0;
 #define INIT_TIME 50 // 500 ms
+
+#define MTBBUS_TIMEOUT_MAX 100 // 1 s
+volatile uint8_t mtbbus_timeout = MTBBUS_TIMEOUT_MAX; // increment each 10 ms
+
+volatile uint8_t btn_press_time = 0;
+
+volatile bool mtbbus_auto_speed_in_progress = false;
+volatile uint8_t mtbbus_auto_speed_timer = 0;
+volatile uint8_t mtbbus_auto_speed_last;
+#define MTBBUS_AUTO_SPEED_TIMEOUT 20 // 200 ms
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -231,6 +248,21 @@ ISR(TIMER1_COMPA_vect) {
 		if (_init_counter == INIT_TIME)
 			on_initialized();
 	}
+
+	if (mtbbus_timeout < MTBBUS_TIMEOUT_MAX)
+		mtbbus_timeout++;
+
+	if ((btn_pressed) && (btn_press_time < 100)) {
+		btn_press_time++;
+		if (btn_press_time >= 100)
+			btn_long_press();
+	}
+
+	if (mtbbus_auto_speed_in_progress) {
+		mtbbus_auto_speed_timer++;
+		if (mtbbus_auto_speed_timer >= MTBBUS_AUTO_SPEED_TIMEOUT)
+			mtbbus_auto_speed_next();
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -276,6 +308,20 @@ void led_red_ok() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void btn_on_pressed() {
+	btn_press_time = 0;
+}
+
+void btn_on_depressed() {
+	if (btn_press_time < 100) // < 1 s
+		btn_short_press();
+}
+
+static inline void btn_short_press() {
+	if (mtbbus_auto_speed_in_progress) {
+		autodetect_mtbbus_speed_stop();
+		return;
+	}
+
 	uint8_t _mtbbus_addr = io_get_addr_raw();
 	error_flags.bits.addr_zero = (_mtbbus_addr == 0);
 	mtbbus_addr = _mtbbus_addr;
@@ -284,7 +330,10 @@ void btn_on_pressed() {
 	update_mtbbus_polarity();
 }
 
-void btn_on_depressed() {}
+static inline void btn_long_press() {
+	if (!mtbbus_addressed())
+		autodetect_mtbbus_speed();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -298,6 +347,10 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		led_gr_counter = LED_GR_ON;
 	}
 	_delay_us(2);
+
+	mtbbus_timeout = 0;
+	if (mtbbus_auto_speed_in_progress)
+		mtbbus_auto_speed_received();
 
 	if ((!broadcast) && (command_code == MTBBUS_CMD_MOSI_MODULE_INQUIRY) && (data_len >= 1)) {
 		static bool last_input_changed = false;
@@ -475,3 +528,42 @@ bool is_ir_support_measure() {
 
 	return is;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+static inline bool mtbbus_addressed() {
+	return mtbbus_timeout < MTBBUS_TIMEOUT_MAX;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+static inline void autodetect_mtbbus_speed() {
+	io_led_blue_on();
+	mtbbus_auto_speed_in_progress = true;
+	mtbbus_auto_speed_last = 0; // relies on first speed 38400 kBd = 0x01
+	mtbbus_auto_speed_next();
+}
+
+void mtbbus_auto_speed_next() {
+	mtbbus_auto_speed_timer = 0;
+	mtbbus_auto_speed_last++; // relies on continuous interval of speeds
+	if (mtbbus_auto_speed_last > MTBBUS_SPEED_115200)
+		mtbbus_auto_speed_last = 1;
+	mtbbus_set_speed(mtbbus_auto_speed_last);
+}
+
+static inline void mtbbus_auto_speed_received() {
+	mtbbus_auto_speed_in_progress = false;
+	config_mtbbus_speed = mtbbus_auto_speed_last;
+	config_write = true;
+	io_led_blue_off();
+}
+
+static inline void autodetect_mtbbus_speed_stop() {
+	if (mtbbus_auto_speed_in_progress) {
+		mtbbus_auto_speed_in_progress = false;
+		io_led_blue_off();
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
