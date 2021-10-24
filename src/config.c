@@ -90,7 +90,7 @@ bool config_is_int_wdrf() {
 uint16_t config_bootloader_version() {
 	uint16_t version = (eeprom_read_byte(EEPROM_ADDR_BOOTLOADER_VER_MAJOR) << 8) |
 	                   (eeprom_read_byte(EEPROM_ADDR_BOOTLOADER_VER_MINOR));
-	return version == 0xFFFF ? 0x0100 : version;
+	return version == 0xFFFF ? 0x0101 : version;
 }
 
 uint8_t config_mcusr() {
