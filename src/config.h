@@ -47,7 +47,7 @@ static inline bool is_ir_input_in_section(uint8_t input) {
 #define CONFIG_FW_MAJOR 1
 #define CONFIG_FW_MINOR 2
 #define CONFIG_PROTO_MAJOR 4
-#define CONFIG_PROTO_MINOR 0
+#define CONFIG_PROTO_MINOR 1
 
 #define CONFIG_BOOT_FWUPGD 0x01
 #define CONFIG_BOOT_NORMAL 0x00
