@@ -14,6 +14,7 @@
 #include "config.h"
 #include "inputs.h"
 #include "ir.h"
+#include "diag.h"
 #include "../lib/mtbbus.h"
 #include "../lib/crc16modbus.h"
 
@@ -40,21 +41,10 @@ static inline void autodetect_mtbbus_speed();
 static inline void autodetect_mtbbus_speed_stop();
 void mtbbus_auto_speed_next();
 static inline void mtbbus_auto_speed_received();
+void send_diag_info();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
-
-typedef union {
-	struct {
-		bool porf : 1;
-		bool extrf : 1;
-		bool borf : 1;
-		bool wdrf : 1;
-	} bits;
-	uint8_t all;
-} mcusr_t;
-
-mcusr_t mcusr;
 
 #define LED_GR_ON 5
 #define LED_GR_OFF 2
@@ -65,18 +55,6 @@ volatile uint8_t led_gr_counter = 0;
 #define LED_RED_ERR_ON 100
 #define LED_RED_ERR_OFF 50
 volatile uint8_t led_red_counter = 0;
-
-typedef union {
-	struct {
-		bool addr_zero : 1;
-		bool bad_mtbbus_polarity : 1;
-		bool missed_timer : 1;
-		bool bad_reset : 1;
-	} bits;
-	uint8_t all;
-} error_flags_t;
-
-error_flags_t error_flags = {0};
 
 volatile bool beacon = false;
 volatile bool inputs_debounce_to_update = false;
@@ -167,8 +145,7 @@ static inline void init() {
 		config_int_wdrf(false);
 	}
 	mcusr.bits.borf = false; // brownout detects basically all power-on resets
-	if (mcusr.all > 1)
-		error_flags.bits.bad_reset = true;
+	mtbbus_warn_flags.all = (mcusr.all >> 1) & 0x07;
 
 	io_init();
 	io_led_red_on();
@@ -206,6 +183,7 @@ static inline void init() {
 		config_save_ir_support();
 	}
 
+	mtbbus_warn_flags_old = mtbbus_warn_flags;
 	wdt_enable(WDTO_250MS);
 	sei(); // enable interrupts globally
 }
@@ -236,7 +214,7 @@ ISR(TIMER0_COMPA_vect) {
 ISR(TIMER1_COMPA_vect) {
 	// Timer 3 @ 100 Hz (period 10 ms)
 	if ((TCNT1H > 0) & (TCNT1H < OCR1AH))
-		error_flags.bits.missed_timer = true;
+		mtbbus_warn_flags.bits.missed_timer = true;
 
 	scom_to_update = true;
 	outputs_update();
@@ -354,6 +332,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 
 	if ((!broadcast) && (command_code == MTBBUS_CMD_MOSI_MODULE_INQUIRY) && (data_len >= 1)) {
 		static bool last_input_changed = false;
+		static bool last_diag_changed = false;
 		static bool first_scan = true;
 		bool last_ok = data[0] & 0x01;
 
@@ -365,14 +344,21 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			inputs_old = inputs_logic_state;
 		} else {
 			last_input_changed = false;
-			mtbbus_send_ack();
+
+			if ((mtbbus_warn_flags.all != mtbbus_warn_flags_old.all) || (last_diag_changed && !last_ok)) {
+				last_diag_changed = true;
+				mtbbus_warn_flags_old = mtbbus_warn_flags;
+				send_diag_info();
+			} else {
+				mtbbus_send_ack();
+			}
 		}
 
 	} else if ((command_code == MTBBUS_CMD_MOSI_INFO_REQ) && (!broadcast)) {
 		mtbbus_output_buf[0] = 7;
 		mtbbus_output_buf[1] = MTBBUS_CMD_MISO_MODULE_INFO;
 		mtbbus_output_buf[2] = CONFIG_MODULE_TYPE;
-		mtbbus_output_buf[3] = (mcusr.bits.wdrf << 2) | (mcusr.bits.extrf << 3); // module flags
+		mtbbus_output_buf[3] = (mtbbus_warn_flags.all > 0) << 2;
 		mtbbus_output_buf[4] = CONFIG_FW_MAJOR;
 		mtbbus_output_buf[5] = CONFIG_FW_MINOR;
 		mtbbus_output_buf[6] = CONFIG_PROTO_MAJOR;
@@ -465,6 +451,9 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		} else {
 			mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
 		}
+
+	} else if (command_code == MTBBUS_CMD_MOSI_DIAG_INFO_REQ) {
+		send_diag_info();
 
 	} else {
 		if (!broadcast)
@@ -564,6 +553,17 @@ static inline void autodetect_mtbbus_speed_stop() {
 		mtbbus_auto_speed_in_progress = false;
 		io_led_blue_off();
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void send_diag_info() {
+	mtbbus_output_buf[0] = 3;
+	mtbbus_output_buf[1] = MTBBUS_CMD_MISO_DIAG_INFO;
+	mtbbus_output_buf[2] = 0;
+	mtbbus_output_buf[3] = mtbbus_warn_flags.all;
+	mtbbus_warn_flags_old = mtbbus_warn_flags;
+	mtbbus_send_buf_autolen();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
