@@ -41,7 +41,7 @@ static inline void autodetect_mtbbus_speed();
 static inline void autodetect_mtbbus_speed_stop();
 void mtbbus_auto_speed_next();
 static inline void mtbbus_auto_speed_received();
-void send_diag_info();
+void send_diag_value(uint8_t i);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Defines & global variables
@@ -348,7 +348,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			if ((mtbbus_warn_flags.all != mtbbus_warn_flags_old.all) || (last_diag_changed && !last_ok)) {
 				last_diag_changed = true;
 				mtbbus_warn_flags_old = mtbbus_warn_flags;
-				send_diag_info();
+				send_diag_value(MTBBUS_DV_STATE);
 			} else {
 				mtbbus_send_ack();
 			}
@@ -455,8 +455,8 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			mtbbus_send_error(MTBBUS_ERROR_UNKNOWN_COMMAND);
 		}
 
-	} else if (command_code == MTBBUS_CMD_MOSI_DIAG_INFO_REQ) {
-		send_diag_info();
+	} else if ((command_code == MTBBUS_CMD_MOSI_DIAG_VALUE_REQ) && (data_len >= 1)) {
+		send_diag_value(data[0]);
 
 	} else {
 		if (!broadcast)
@@ -560,12 +560,32 @@ static inline void autodetect_mtbbus_speed_stop() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void send_diag_info() {
-	mtbbus_output_buf[0] = 3;
-	mtbbus_output_buf[1] = MTBBUS_CMD_MISO_DIAG_INFO;
-	mtbbus_output_buf[2] = 0;
-	mtbbus_output_buf[3] = mtbbus_warn_flags.all;
-	mtbbus_warn_flags_old = mtbbus_warn_flags;
+void send_diag_value(uint8_t i) {
+	mtbbus_output_buf[1] = MTBBUS_CMD_MISO_DIAG_VALUE;
+	mtbbus_output_buf[2] = i;
+
+	switch (i) {
+	case MTBBUS_DV_VERSION:
+		mtbbus_output_buf[0] = 2+1;
+		mtbbus_output_buf[3] = 0x10;
+		break;
+
+	case MTBBUS_DV_STATE:
+		mtbbus_output_buf[0] = 2+1;
+		mtbbus_output_buf[3] = (mtbbus_warn_flags.all > 0) << 1;
+		break;
+
+	case MTBBUS_DV_WARNINGS:
+		mtbbus_warn_flags_old = mtbbus_warn_flags;
+		mtbbus_output_buf[0] = 2+1;
+		mtbbus_output_buf[3] = mtbbus_warn_flags.all;
+		break;
+
+	default:
+		mtbbus_output_buf[0] = 2+0;
+		mtbbus_warn_flags_old = mtbbus_warn_flags;
+	}
+
 	mtbbus_send_buf_autolen();
 }
 
