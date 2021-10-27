@@ -183,6 +183,8 @@ static inline void init() {
 		config_save_ir_support();
 	}
 
+	vcc_init_measure();
+
 	mtbbus_warn_flags_old = mtbbus_warn_flags;
 	wdt_enable(WDTO_250MS);
 	sei(); // enable interrupts globally
@@ -240,6 +242,15 @@ ISR(TIMER1_COMPA_vect) {
 		mtbbus_auto_speed_timer++;
 		if (mtbbus_auto_speed_timer >= MTBBUS_AUTO_SPEED_TIMEOUT)
 			mtbbus_auto_speed_next();
+	}
+
+	{
+		static uint8_t vcc_measure_timer = 0;
+		vcc_measure_timer++;
+		if (vcc_measure_timer >= VCC_MEASURE_PERIOD) {
+			vcc_start_measure();
+			vcc_measure_timer = 0;
+		}
 	}
 }
 
@@ -579,6 +590,12 @@ void send_diag_value(uint8_t i) {
 		mtbbus_warn_flags_old = mtbbus_warn_flags;
 		mtbbus_output_buf[0] = 2+1;
 		mtbbus_output_buf[3] = mtbbus_warn_flags.all;
+		break;
+
+	case MTBBUS_DV_VMCU:
+		mtbbus_output_buf[0] = 2+2;
+		mtbbus_output_buf[3] = vcc_voltage >> 8;
+		mtbbus_output_buf[4] = vcc_voltage & 0xFF;
 		break;
 
 	default:

@@ -44,4 +44,10 @@ typedef union {
 extern mtbbus_warn_flags_t mtbbus_warn_flags;
 extern mtbbus_warn_flags_t mtbbus_warn_flags_old;
 
+void vcc_init_measure();
+void vcc_start_measure();
+
+#define VCC_MEASURE_PERIOD 10 // 100 ms
+extern volatile uint16_t vcc_voltage;
+
 #endif
