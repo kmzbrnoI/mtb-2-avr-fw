@@ -37,6 +37,7 @@ typedef union {
 		bool wdrf : 1;
 		bool _ : 1;
 		bool missed_timer : 1;
+		bool vcc_oscilating : 1;
 	} bits;
 	uint8_t all;
 } mtbbus_warn_flags_t;
@@ -49,5 +50,6 @@ void vcc_start_measure();
 
 #define VCC_MEASURE_PERIOD 10 // 100 ms
 extern volatile uint16_t vcc_voltage;
+#define VCC_MAX_DIFF 10 // 0.2 V
 
 #endif

@@ -7,6 +7,7 @@ error_flags_t error_flags = {0};
 mtbbus_warn_flags_t mtbbus_warn_flags = {0};
 mtbbus_warn_flags_t mtbbus_warn_flags_old = {0};
 volatile uint16_t vcc_voltage = 0;
+volatile uint16_t init_vcc = 0xFFFF;
 
 void vcc_init_measure() {
 	// Initialize VCC measurement.
@@ -27,4 +28,11 @@ ISR(ADC_vect) {
 	uint16_t value = ADCL;
 	value |= (ADCH << 8);
 	vcc_voltage = value;
+
+	if (init_vcc == 0xFFFF)
+		init_vcc = vcc_voltage;
+
+	uint16_t diff = vcc_voltage > init_vcc ? vcc_voltage-init_vcc : init_vcc-vcc_voltage;
+	if (diff > VCC_MAX_DIFF)
+		mtbbus_warn_flags.bits.vcc_oscilating = true;
 }
