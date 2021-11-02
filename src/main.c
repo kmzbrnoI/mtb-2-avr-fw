@@ -185,7 +185,7 @@ static inline void init() {
 
 	diag_init();
 
-	mtbbus_warn_flags_old = mtbbus_warn_flags;
+	mtbbus_warn_flags_old = 0xFF; // causes report of change to PC
 	wdt_enable(WDTO_250MS);
 	sei(); // enable interrupts globally
 }
