@@ -183,7 +183,7 @@ static inline void init() {
 		config_save_ir_support();
 	}
 
-	vcc_init_measure();
+	diag_init();
 
 	mtbbus_warn_flags_old = mtbbus_warn_flags;
 	wdt_enable(WDTO_250MS);
@@ -245,13 +245,14 @@ ISR(TIMER1_COMPA_vect) {
 	}
 
 	{
-		static uint8_t vcc_measure_timer = 0;
-		vcc_measure_timer++;
-		if (vcc_measure_timer >= VCC_MEASURE_PERIOD) {
-			vcc_start_measure();
-			vcc_measure_timer = 0;
+		static uint8_t diag_timer = 0;
+		diag_timer++;
+		if (diag_timer >= DIAG_UPDATE_PERIOD) {
+			diag_update();
+			diag_timer = 0;
 		}
 	}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -596,6 +597,14 @@ void send_diag_value(uint8_t i) {
 		mtbbus_output_buf[0] = 2+2;
 		mtbbus_output_buf[3] = vcc_voltage >> 8;
 		mtbbus_output_buf[4] = vcc_voltage & 0xFF;
+		break;
+
+	case MTBBUS_DV_TEMPMCU:
+		mtbbus_output_buf[0] = 2+4;
+		mtbbus_output_buf[3] = mcu_temperature >> 8;
+		mtbbus_output_buf[4] = mcu_temperature & 0xFF;
+		mtbbus_output_buf[5] = ts_offset;
+		mtbbus_output_buf[6] = ts_gain;
 		break;
 
 	default:

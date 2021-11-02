@@ -85,5 +85,6 @@ int mtbbus_send_buf();
 #define MTBBUS_DV_ERRORS 10
 #define MTBBUS_DV_WARNINGS 11
 #define MTBBUS_DV_VMCU 12
+#define MTBBUS_DV_TEMPMCU 13
 
 #endif
