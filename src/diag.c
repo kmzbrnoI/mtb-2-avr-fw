@@ -14,7 +14,8 @@ volatile uint16_t vcc_voltage = 0;
 volatile uint16_t init_vcc = 0xFFFF;
 uint8_t ts_offset;
 uint8_t ts_gain;
-volatile uint16_t mcu_temperature;
+volatile uint16_t mcu_temperature = 0;
+volatile uint32_t uptime_seconds = 0;
 
 #define DIAG_STEP_VCC_READY 0
 #define DIAG_STEP_VCC_MEASURE 1
@@ -42,7 +43,7 @@ void diag_init() {
 }
 
 void diag_update() {
-	// called each 10 ms
+	// called each 100 ms
 	switch (diag_step) {
 	case DIAG_STEP_VCC_READY:
 		adc_start();
@@ -56,6 +57,15 @@ void diag_update() {
 	case DIAG_STEP_TEMP_MEASURE:
 		vcc_prepare_measure();
 		break;
+	}
+
+	{
+		static uint8_t uptime_counter = 0;
+		uptime_counter++;
+		if (uptime_counter >= 10) {
+			uptime_seconds++;
+			uptime_counter = 0;
+		}
 	}
 
 	diag_step++;

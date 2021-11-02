@@ -56,5 +56,6 @@ extern volatile uint16_t vcc_voltage;
 extern volatile uint16_t mcu_temperature;
 extern uint8_t ts_offset;
 extern uint8_t ts_gain;
+extern volatile uint32_t uptime_seconds;
 
 #endif
