@@ -35,8 +35,8 @@ static inline void adc_start();
 ///////////////////////////////////////////////////////////////////////////////
 
 void diag_init() {
-	ts_offset = boot_signature_byte_get(0x0002); // see datasheet
-	ts_gain = boot_signature_byte_get(0x0003); // see datasheet
+	ts_offset = boot_signature_byte_get(0x02); // see datasheet
+	ts_gain = boot_signature_byte_get(0x03); // see datasheet
 
 	ADCSRA = (1 << ADIE) | (1 << ADEN); // enable ADC interrupt, enable ADC
 	ADCSRA |= 0x5; // prescaler 32×
