@@ -28,6 +28,7 @@ static void mtbbus_send_error(uint8_t code);
 
 #define EEPROM_ADDR_MTBBUS_SPEED           ((uint8_t*)0x01)
 #define EEPROM_ADDR_BOOT                   ((uint8_t*)0x03)
+#define EEPROM_ADDR_IR_SUPPORT             ((uint8_t*)0x06)
 #define EEPROM_ADDR_BOOTLOADER_VER_MAJOR   ((uint8_t*)0x08)
 #define EEPROM_ADDR_BOOTLOADER_VER_MINOR   ((uint8_t*)0x09)
 #define EEPROM_ADDR_BOOTLOADER_MCUSR       ((uint8_t*)0x0A)
@@ -35,11 +36,14 @@ static void mtbbus_send_error(uint8_t code);
 #define CONFIG_BOOT_NORMAL 0x00
 #define CONFIG_BOOT_FWUPGD 0x01
 
-#define CONFIG_MODULE_TYPE 0x15
+#define CONFIG_MODULE_TYPE_IR 0x10
+#define CONFIG_MODULE_TYPE_NONIR 0x11
+#define CONFIG_MODULE_TYPE (config_ir_support ? CONFIG_MODULE_TYPE_IR : CONFIG_MODULE_TYPE_NONIR)
 #define CONFIG_FW_MAJOR 1
-#define CONFIG_FW_MINOR 2
+#define CONFIG_FW_MINOR 3
 #define CONFIG_PROTO_MAJOR 4
 #define CONFIG_PROTO_MINOR 0
+
 
 __attribute__((used, section(".fwattr"))) struct {
 	uint8_t no_pages;
@@ -60,6 +64,7 @@ volatile uint8_t page = 0xFF;
 volatile uint8_t subpage = 0xFF;
 volatile bool page_erase = false;
 volatile bool page_write = false;
+volatile uint8_t config_ir_support = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -91,6 +96,8 @@ int main() {
 
 	eeprom_update_byte(EEPROM_ADDR_BOOTLOADER_VER_MAJOR, CONFIG_FW_MAJOR);
 	eeprom_update_byte(EEPROM_ADDR_BOOTLOADER_VER_MINOR, CONFIG_FW_MINOR);
+
+	config_ir_support = eeprom_read_byte(EEPROM_ADDR_IR_SUPPORT);
 
 	if ((boot != CONFIG_BOOT_FWUPGD) && (io_button()))
 		check_and_boot();
