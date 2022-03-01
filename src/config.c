@@ -14,7 +14,7 @@ uint8_t config_ir_support;
 #define EEPROM_ADDR_INT_WDRF               ((uint8_t*)0x02)
 #define EEPROM_ADDR_BOOT                   ((uint8_t*)0x03)
 #define EEPROM_ADDR_IR_INPUTS              ((uint16_t*)0x04)
-#define EEPROM_ADDR_IR_SUPPORT             ((uint16_t*)0x06)
+#define EEPROM_ADDR_IR_SUPPORT             ((uint8_t*)0x06)
 #define EEPROM_ADDR_BOOTLOADER_VER_MAJOR   ((uint8_t*)0x08)
 #define EEPROM_ADDR_BOOTLOADER_VER_MINOR   ((uint8_t*)0x09)
 #define EEPROM_ADDR_BOOTLOADER_MCUSR       ((uint8_t*)0x0A)
@@ -48,7 +48,7 @@ void config_load() {
 	eeprom_read_block(config_safe_state, EEPROM_ADDR_SAFE_STATE, NO_OUTPUTS);
 	eeprom_read_block(config_inputs_delay, EEPROM_ADDR_INPUTS_DELAY, NO_OUTPUTS/2);
 	config_ir_inputs = eeprom_read_word(EEPROM_ADDR_IR_INPUTS);
-	config_ir_support = eeprom_read_word(EEPROM_ADDR_IR_SUPPORT);
+	config_ir_support = eeprom_read_byte(EEPROM_ADDR_IR_SUPPORT);
 }
 
 void config_save() {
@@ -76,7 +76,7 @@ void config_boot_normal() {
 }
 
 void config_save_ir_support() {
-	eeprom_update_word(EEPROM_ADDR_IR_SUPPORT, config_ir_support);
+	eeprom_update_byte(EEPROM_ADDR_IR_SUPPORT, config_ir_support);
 }
 
 void config_int_wdrf(bool value) {
