@@ -84,6 +84,8 @@ volatile uint8_t mtbbus_auto_speed_timer = 0;
 volatile uint8_t mtbbus_auto_speed_last;
 #define MTBBUS_AUTO_SPEED_TIMEOUT 20 // 200 ms
 
+volatile uint8_t diag_timer = 0;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 int main() {
@@ -127,6 +129,11 @@ int main() {
 
 		if ((mtbbus_auto_speed_in_progress) && (mtbbus_auto_speed_timer == MTBBUS_AUTO_SPEED_TIMEOUT))
 			mtbbus_auto_speed_next();
+
+		if (diag_timer >= DIAG_UPDATE_PERIOD) {
+			diag_timer = 0;
+			diag_update();
+		}
 
 		wdt_reset();
 	}
@@ -242,15 +249,8 @@ ISR(TIMER1_COMPA_vect) {
 	if ((mtbbus_auto_speed_in_progress) && (mtbbus_auto_speed_timer < MTBBUS_AUTO_SPEED_TIMEOUT))
 		mtbbus_auto_speed_timer++;
 
-	{
-		static uint8_t diag_timer = 0;
+	if (diag_timer < DIAG_UPDATE_PERIOD)
 		diag_timer++;
-		if (diag_timer >= DIAG_UPDATE_PERIOD) {
-			diag_update();
-			diag_timer = 0;
-		}
-	}
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
