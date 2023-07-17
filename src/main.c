@@ -76,6 +76,7 @@ volatile uint8_t _init_counter = 0;
 #define MTBBUS_TIMEOUT_MAX 100 // 1 s
 volatile uint8_t mtbbus_timeout = MTBBUS_TIMEOUT_MAX; // increment each 10 ms
 
+#define BTN_PRESS_1S 100
 volatile uint8_t btn_press_time = 0;
 
 volatile bool mtbbus_auto_speed_in_progress = false;
@@ -90,24 +91,24 @@ int main() {
 
 	while (true) {
 		if (scom_to_update) {
+			scom_to_update = false;
 			outputs_changed_when_setting_scom = false;
 			scom_update();
-			scom_to_update = false;
 			if (outputs_changed_when_setting_scom)
 				outputs_apply_state();
 		}
 		if (inputs_debounce_to_update) {
-			inputs_debounce_update();
 			inputs_debounce_to_update = false;
+			inputs_debounce_update();
 		}
 		if (ir_debounce_to_update) {
-			ir_debounce_update();
 			ir_debounce_to_update = false;
+			ir_debounce_update();
 		}
 
 		if (config_write) {
-			config_save();
 			config_write = false;
+			config_save();
 		}
 
 		if (!ir_shift_disable) {
@@ -119,8 +120,12 @@ int main() {
 			}
 		}
 
+		if (btn_press_time == BTN_PRESS_1S) {
+			btn_press_time = 0xFF;
+			btn_long_press();
+		}
+
 		wdt_reset();
-		_delay_us(50);
 	}
 }
 
@@ -228,11 +233,8 @@ ISR(TIMER1_COMPA_vect) {
 	if (mtbbus_timeout < MTBBUS_TIMEOUT_MAX)
 		mtbbus_timeout++;
 
-	if ((btn_pressed) && (btn_press_time < 100)) {
+	if ((btn_pressed) && (btn_press_time < BTN_PRESS_1S))
 		btn_press_time++;
-		if (btn_press_time >= 100)
-			btn_long_press();
-	}
 
 	if (mtbbus_auto_speed_in_progress) {
 		mtbbus_auto_speed_timer++;
@@ -298,7 +300,7 @@ void btn_on_pressed(void) {
 }
 
 void btn_on_depressed(void) {
-	if (btn_press_time < 100) // < 1 s
+	if (btn_press_time < BTN_PRESS_1S)
 		btn_short_press();
 }
 
