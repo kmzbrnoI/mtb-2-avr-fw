@@ -8,14 +8,14 @@
 
 uint16_t ir_state = 0;
 bool ir_shift_disable = false;
-void (*volatile on_shift_scanned)() = NULL;
+void (*volatile on_shift_scanned)(void) = NULL;
 volatile size_t pwri = 0;
 volatile uint8_t inputs_active = 0;
 volatile bool ir_debounce_to_update = false;
 
-static inline void _shift_scanned();
+static inline void _shift_scanned(void);
 
-void ir_update_50us() {
+void ir_update_50us(void) {
 	static size_t counter = 0;
 
 	if (counter == 0) {
@@ -51,6 +51,6 @@ void ir_update_50us() {
 	}
 }
 
-void _shift_scanned() {
+void _shift_scanned(void) {
 	inputs_active = ((~io_get_inputs_raw()) >> (pwri*4)) & 0xF;
 }

@@ -28,13 +28,13 @@ volatile uint8_t diag_step = DIAG_STEP_TEMP_MEASURE;
 ///////////////////////////////////////////////////////////////////////////////
 // Function prototypes
 
-static inline void vcc_prepare_measure();
-static inline void temp_prepare_measure();
-static inline void adc_start();
+static inline void vcc_prepare_measure(void);
+static inline void temp_prepare_measure(void);
+static inline void adc_start(void);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void diag_init() {
+void diag_init(void) {
 	ts_offset = boot_signature_byte_get(0x02); // see datasheet
 	ts_gain = boot_signature_byte_get(0x03); // see datasheet
 
@@ -42,7 +42,7 @@ void diag_init() {
 	ADCSRA |= 0x5; // prescaler 32×
 }
 
-void diag_update() {
+void diag_update(void) {
 	// called each 100 ms
 	switch (diag_step) {
 	case DIAG_STEP_VCC_READY:
@@ -73,17 +73,17 @@ void diag_update() {
 		diag_step = 0;
 }
 
-void vcc_prepare_measure() {
+void vcc_prepare_measure(void) {
 	ADMUX = (1 << REFS0); // AVCC with external capacitor at AREF pin
 	ADMUX |= 0x0E; // measure internal 1V1 band-gap reference
 }
 
-void temp_prepare_measure() {
+void temp_prepare_measure(void) {
 	ADMUX = (1 << REFS0) | (1 << REFS1); // 1V1 internal reference with ext. capacitor at AREF pin
 	ADMUX |= 0x08; // measure ADC8 = temperature sensor
 }
 
-void adc_start() {
+void adc_start(void) {
 	ADCSRA |= (1 << ADSC); // start conversion
 }
 

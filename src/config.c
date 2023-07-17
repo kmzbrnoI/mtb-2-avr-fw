@@ -22,7 +22,7 @@ uint8_t config_ir_support;
 #define EEPROM_ADDR_INPUTS_DELAY           ((void*)0x20)
 
 
-void config_load() {
+void config_load(void) {
 	uint8_t version = eeprom_read_byte(EEPROM_ADDR_VERSION);
 	if (version == 0xFF) {
 		// default EEPROM content → reset config
@@ -51,7 +51,7 @@ void config_load() {
 	config_ir_support = eeprom_read_byte(EEPROM_ADDR_IR_SUPPORT);
 }
 
-void config_save() {
+void config_save(void) {
 	eeprom_update_byte(EEPROM_ADDR_VERSION, 1);
 	eeprom_update_byte(EEPROM_ADDR_MTBBUS_SPEED, config_mtbbus_speed);
 	eeprom_update_block(config_safe_state, EEPROM_ADDR_SAFE_STATE, NO_OUTPUTS);
@@ -67,15 +67,15 @@ uint8_t input_delay(uint8_t input) {
 	return (input%2 == 0) ? both & 0x0F : (both >> 4) & 0x0F;
 }
 
-void config_boot_fwupgd() {
+void config_boot_fwupgd(void) {
 	eeprom_update_byte(EEPROM_ADDR_BOOT, CONFIG_BOOT_FWUPGD);
 }
 
-void config_boot_normal() {
+void config_boot_normal(void) {
 	eeprom_update_byte(EEPROM_ADDR_BOOT, CONFIG_BOOT_NORMAL);
 }
 
-void config_save_ir_support() {
+void config_save_ir_support(void) {
 	eeprom_update_byte(EEPROM_ADDR_IR_SUPPORT, config_ir_support);
 }
 
@@ -83,16 +83,16 @@ void config_int_wdrf(bool value) {
 	eeprom_update_byte(EEPROM_ADDR_INT_WDRF, value);
 }
 
-bool config_is_int_wdrf() {
+bool config_is_int_wdrf(void) {
 	return eeprom_read_byte(EEPROM_ADDR_INT_WDRF) & 1;
 }
 
-uint16_t config_bootloader_version() {
+uint16_t config_bootloader_version(void) {
 	uint16_t version = (eeprom_read_byte(EEPROM_ADDR_BOOTLOADER_VER_MAJOR) << 8) |
 	                   (eeprom_read_byte(EEPROM_ADDR_BOOTLOADER_VER_MINOR));
 	return version == 0xFFFF ? 0x0101 : version;
 }
 
-uint8_t config_mcusr() {
+uint8_t config_mcusr(void) {
 	return eeprom_read_byte(EEPROM_ADDR_BOOTLOADER_MCUSR);
 }

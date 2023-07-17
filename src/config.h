@@ -16,18 +16,18 @@ extern uint16_t config_ir_inputs;
 extern uint8_t config_ir_support;
 
 // Warning: these functions take long time to execute
-void config_load();
-void config_save();
-void config_save_ir_support();
+void config_load(void);
+void config_save(void);
+void config_save_ir_support(void);
 
-void config_boot_fwupgd();
-void config_boot_normal();
+void config_boot_fwupgd(void);
+void config_boot_normal(void);
 
 void config_int_wdrf(bool value);
-bool config_is_int_wdrf();
+bool config_is_int_wdrf(void);
 
-uint16_t config_bootloader_version();
-uint8_t config_mcusr();
+uint16_t config_bootloader_version(void);
+uint8_t config_mcusr(void);
 
 uint8_t input_delay(uint8_t input);
 
