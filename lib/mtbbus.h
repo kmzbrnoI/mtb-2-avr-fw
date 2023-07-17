@@ -13,25 +13,16 @@
 #define MTBBUS_OUTPUT_BUF_MAX_SIZE_USER 120
 #define MTBBUS_OUTPUT_BUF_MAX_SIZE 128
 #define MTBBUS_INPUT_BUF_MAX_SIZE 128
-extern uint8_t mtbbus_output_buf[MTBBUS_OUTPUT_BUF_MAX_SIZE];
-extern uint8_t mtbbus_output_buf_size;
+extern volatile uint8_t mtbbus_output_buf[MTBBUS_OUTPUT_BUF_MAX_SIZE];
+extern volatile uint8_t mtbbus_output_buf_size;
 
-extern uint8_t mtbbus_input_buf[MTBBUS_INPUT_BUF_MAX_SIZE];
-extern uint8_t mtbbus_input_buf_size;
-
-extern uint8_t mtbbus_addr;
-extern uint8_t mtbbus_speed;
+extern volatile uint8_t mtbbus_addr;
+extern volatile uint8_t mtbbus_speed;
 
 // ‹data› starts with Command code byte
 // ‹size› is amount of data bytes + 1
-extern void (*volatile mtbbus_on_receive)(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len);
-extern void (*volatile mtbbus_on_sent)();
-
-// This function is called in interrupt and thus cannot be interrupted
-// It is called when inquiry for different address than module's in received.
-// This situation means that processor has some time (because at least 5
-// bytes of data are sent) to do critical uninterrupable stuff.
-extern void (*volatile mtbbus_on_free)();
+extern void (*mtbbus_on_receive)(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len);
+extern void (*mtbbus_on_sent)(void);
 
 #define MTBBUS_SPEED_38400 0x01
 #define MTBBUS_SPEED_57600 0x02
@@ -41,11 +32,12 @@ extern void (*volatile mtbbus_on_free)();
 
 void mtbbus_init(uint8_t addr, uint8_t speed);
 void mtbbus_set_speed(uint8_t speed);
+void mtbbus_update(void);
 
-bool mtbbus_can_fill_output_buf();
+bool mtbbus_can_fill_output_buf(void);
 int mtbbus_send(uint8_t *data, uint8_t size);
-int mtbbus_send_buf_autolen();
-int mtbbus_send_buf();
+int mtbbus_send_buf_autolen(void);
+int mtbbus_send_buf(void);
 
 #define MTBBUS_CMD_MOSI_MODULE_INQUIRY 0x01
 #define MTBBUS_CMD_MOSI_INFO_REQ 0x02

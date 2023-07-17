@@ -6,27 +6,28 @@
 #include "../src/io.h"
 #include "crc16modbus.h"
 
-uint8_t mtbbus_output_buf[MTBBUS_OUTPUT_BUF_MAX_SIZE];
-uint8_t mtbbus_output_buf_size = 0;
-uint8_t mtbbus_next_byte_to_send = 0;
-bool sending = false;
+volatile uint8_t mtbbus_output_buf[MTBBUS_OUTPUT_BUF_MAX_SIZE];
+volatile uint8_t mtbbus_output_buf_size = 0;
+volatile uint8_t mtbbus_next_byte_to_send = 0;
+volatile bool sending = false;
 
-uint8_t mtbbus_input_buf[MTBBUS_INPUT_BUF_MAX_SIZE];
-uint8_t mtbbus_input_buf_size = 0;
-bool receiving = false;
+volatile uint8_t mtbbus_input_buf[MTBBUS_INPUT_BUF_MAX_SIZE];
+volatile uint8_t mtbbus_input_buf_size = 0;
+volatile bool receiving = false;
 volatile uint16_t received_crc = 0;
 volatile uint8_t received_addr;
+volatile bool received = false;
+volatile bool sent = false;
 
-uint8_t mtbbus_addr;
-uint8_t mtbbus_speed;
-void (*volatile mtbbus_on_receive)(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len) = NULL;
-void (*volatile mtbbus_on_sent)() = NULL;
-void (*volatile mtbbus_on_free)() = NULL;
+volatile uint8_t mtbbus_addr;
+volatile uint8_t mtbbus_speed;
+void (*mtbbus_on_receive)(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len) = NULL;
+void (*mtbbus_on_sent)(void) = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static void _send_next_byte();
-static inline void _mtbbus_send_buf();
+static void _send_next_byte(void);
+static inline void _mtbbus_send_buf(void);
 static inline void _mtbbus_received_ninth(uint8_t data);
 static inline void _mtbbus_received_non_ninth(uint8_t data);
 
@@ -62,6 +63,24 @@ void mtbbus_set_speed(uint8_t speed) {
 	UCSR0A |= _BV(U2X0);
 }
 
+void mtbbus_update(void) {
+	if (received) {
+		received = false;
+		if (mtbbus_on_receive != NULL)
+			mtbbus_on_receive(received_addr == 0, mtbbus_input_buf[1],
+			                  (uint8_t*)mtbbus_input_buf+2, mtbbus_input_buf_size-3);
+	}
+
+	if (sent) {
+		sent = false;
+		if (mtbbus_on_sent != NULL) {
+			void (*tmp)() = mtbbus_on_sent;
+			mtbbus_on_sent = NULL;
+			tmp();
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Sending
 
@@ -79,12 +98,13 @@ int mtbbus_send(uint8_t *data, uint8_t size) {
 	return 0;
 }
 
-int mtbbus_send_buf() {
+int mtbbus_send_buf(void) {
 	if (sending)
 		return 1;
+	sent = false;
 
 	size_t i = mtbbus_output_buf_size;
-	uint16_t crc = crc16modbus_bytes(0, mtbbus_output_buf, mtbbus_output_buf_size);
+	uint16_t crc = crc16modbus_bytes(0, (uint8_t*)mtbbus_output_buf, mtbbus_output_buf_size);
 	mtbbus_output_buf_size += 2;
 	mtbbus_output_buf[i] = crc & 0xFF;
 	mtbbus_output_buf[i+1] = (crc >> 8) & 0xFF;
@@ -92,7 +112,7 @@ int mtbbus_send_buf() {
 	return 0;
 }
 
-int mtbbus_send_buf_autolen() {
+int mtbbus_send_buf_autolen(void) {
 	if (sending)
 		return 1;
 	if (mtbbus_output_buf[0] > MTBBUS_OUTPUT_BUF_MAX_SIZE_USER)
@@ -102,7 +122,7 @@ int mtbbus_send_buf_autolen() {
 	return 0;
 }
 
-static inline void _mtbbus_send_buf() {
+void _mtbbus_send_buf(void) {
 	sending = true;
 	mtbbus_next_byte_to_send = 0;
 	uart_out();
@@ -111,7 +131,7 @@ static inline void _mtbbus_send_buf() {
 	_send_next_byte();
 }
 
-static void _send_next_byte() {
+void _send_next_byte(void) {
 	loop_until_bit_is_set(UCSR0A, UDRE0); // wait for empty transmit buffer
 	UCSR0B &= ~_BV(TXB80); // 9 bit = 0
 	UDR0 = mtbbus_output_buf[mtbbus_next_byte_to_send];
@@ -124,15 +144,11 @@ ISR(USART_TX_vect) {
 	} else {
 		uart_in();
 		sending = false;
-		if (mtbbus_on_sent != NULL) {
-			void (*tmp)() = mtbbus_on_sent;
-			mtbbus_on_sent = NULL;
-			tmp();
-		}
+		sent = true;
 	}
 }
 
-bool mtbbus_can_fill_output_buf() {
+bool mtbbus_can_fill_output_buf(void) {
 	return !sending;
 }
 
@@ -154,6 +170,9 @@ ISR(USART_RX_vect) {
 }
 
 static inline void _mtbbus_received_ninth(uint8_t data) {
+	if (received) // received data pending
+		return;
+
 	received_addr = data;
 
 	if ((received_addr == mtbbus_addr) || (received_addr == 0)) {
@@ -161,9 +180,6 @@ static inline void _mtbbus_received_ninth(uint8_t data) {
 		receiving = true;
 		mtbbus_input_buf_size = 0;
 		received_crc = crc16modbus_byte(0, received_addr);
-	} else {
-		if (mtbbus_on_free != NULL)
-			mtbbus_on_free();
 	}
 }
 
@@ -181,20 +197,11 @@ static inline void _mtbbus_received_non_ninth(uint8_t data) {
 	if (mtbbus_input_buf_size >= mtbbus_input_buf[0]+3) {
 		// whole message received
 		uint16_t msg_crc = (mtbbus_input_buf[mtbbus_input_buf_size-1] << 8) | (mtbbus_input_buf[mtbbus_input_buf_size-2]);
+		if (received_crc == msg_crc)
+			received = true;
 
-		if (received_crc == msg_crc) {
-			if (mtbbus_on_receive != NULL)
-				mtbbus_on_receive(received_addr == 0, mtbbus_input_buf[1],
-				                  mtbbus_input_buf+2, mtbbus_input_buf_size-3);
-		}
-
-		/*if (received_crc == 0x61E1)
-			io_testpad_toggle();*/
-
-		// Prepare for next receiving from XpressNET device
 		receiving = false;
 		received_crc = 0;
-		mtbbus_input_buf_size = 0;
 		UCSR0A |= _BV(MPCM0); // Receive only if 9. bit = 1
 	}
 }
