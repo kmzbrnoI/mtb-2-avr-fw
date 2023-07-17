@@ -107,17 +107,23 @@ int main() {
 	sei();
 
 	while (true) {
+		mtbbus_update();
+
 		if (page_erase) {
-			boot_spm_busy_wait();
+			while (boot_spm_busy())
+				mtbbus_update();
 			boot_page_erase(SPM_PAGESIZE*page);
-			boot_spm_busy_wait();
+			while (boot_spm_busy())
+				mtbbus_update();
 			page_erase = false;
 		}
 
 		if (page_write) {
-			boot_spm_busy_wait();
+			while (boot_spm_busy())
+				mtbbus_update();
 			boot_page_write(SPM_PAGESIZE*page);
-			boot_spm_busy_wait();
+			while (boot_spm_busy())
+				mtbbus_update();
 			page_write = false;
 			page = 0xFF; // reset so next write will erase flash first
 		}
@@ -212,6 +218,8 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			return;
 		}
 
+		mtbbus_send_ack();
+
 		if (_page != page) {
 			// new page → erase
 			page = _page;
@@ -228,8 +236,6 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			// last subpage → write whole page
 			page_write = true;
 		}
-
-		mtbbus_send_ack();
 
 	} else if (command_code == MTBBUS_CMD_MOSI_WRITE_FLASH_STATUS_REQ) {
 		mtbbus_output_buf[0] = 4;
