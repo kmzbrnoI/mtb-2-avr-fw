@@ -43,16 +43,13 @@ void scom_update(void) {
 	_phase++;
 	if (_phase >= SCOM_PHASE_END) {
 		_phase = 0;
-		for (size_t i = 0; i < NO_OUTPUTS; i++)
-			_codes[i] = _codes_new[i];
+		memcpy(_codes, _codes_new, NO_OUTPUTS);
 	}
 }
 
 void scom_reset(void) {
-	for (size_t i = 0; i < NO_OUTPUTS; i++) {
-		_codes[i] = -1;
-		_codes_new[i] = -1;
-	}
+	memset(_codes, -1, NO_OUTPUTS);
+	memset(_codes_new, -1, NO_OUTPUTS);
 }
 
 void scom_output(uint8_t output, int8_t code) {

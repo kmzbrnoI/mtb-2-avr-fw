@@ -1,4 +1,5 @@
 #include <avr/eeprom.h>
+#include <string.h>
 #include "config.h"
 #include "../lib/mtbbus.h"
 
@@ -27,10 +28,8 @@ void config_load(void) {
 	if (version == 0xFF) {
 		// default EEPROM content → reset config
 		config_mtbbus_speed = MTBBUS_SPEED_38400;
-		for (size_t i = 0; i < NO_OUTPUTS; i++)
-			config_safe_state[i] = 0;
-		for (size_t i = 0; i < NO_OUTPUTS/2; i++)
-			config_inputs_delay[i] = 0;
+		memset(config_safe_state, 0, NO_OUTPUTS);
+		memset(config_inputs_delay, 0, NO_OUTPUTS/2);
 		config_ir_inputs = 0;
 		config_ir_support = 0xFF;
 		config_save();
