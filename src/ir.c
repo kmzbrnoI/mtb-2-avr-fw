@@ -13,7 +13,7 @@ volatile size_t pwri = 0;
 volatile uint8_t inputs_active = 0;
 volatile bool ir_debounce_to_update = false;
 
-void _shift_scanned();
+static inline void _shift_scanned();
 
 void ir_update_50us() {
 	static size_t counter = 0;
