@@ -73,17 +73,17 @@ void diag_update() {
 		diag_step = 0;
 }
 
-static inline void vcc_prepare_measure() {
+void vcc_prepare_measure() {
 	ADMUX = (1 << REFS0); // AVCC with external capacitor at AREF pin
 	ADMUX |= 0x0E; // measure internal 1V1 band-gap reference
 }
 
-static inline void temp_prepare_measure() {
+void temp_prepare_measure() {
 	ADMUX = (1 << REFS0) | (1 << REFS1); // 1V1 internal reference with ext. capacitor at AREF pin
 	ADMUX |= 0x08; // measure ADC8 = temperature sensor
 }
 
-static inline void adc_start() {
+void adc_start() {
 	ADCSRA |= (1 << ADSC); // start conversion
 }
 

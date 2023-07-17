@@ -124,7 +124,7 @@ int main() {
 	}
 }
 
-static inline void init() {
+void init() {
 	// Disable watchdog
 	cli();
 	WDTCSR |= (1<<WDCE) | (1<<WDE);
@@ -172,7 +172,6 @@ static inline void init() {
 	error_flags.bits.addr_zero = (_mtbbus_addr == 0);
 	mtbbus_init(_mtbbus_addr, config_mtbbus_speed);
 	mtbbus_on_receive = mtbbus_received;
-	mtbbus_on_free = mtbbus_free;
 
 	update_mtbbus_polarity();
 
@@ -195,8 +194,6 @@ static inline void on_initialized() {
 	io_led_blue_off();
 	initialized = true;
 }
-
-void mtbbus_free() {}
 
 ISR(TIMER0_COMPA_vect) {
 	// Timer 1 @ 20 kHz (period 50 us)
@@ -256,7 +253,7 @@ ISR(TIMER1_COMPA_vect) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static inline void leds_update() {
+void leds_update() {
 	if (led_gr_counter > 0) {
 		led_gr_counter--;
 		if (led_gr_counter == LED_GR_OFF)
@@ -305,7 +302,7 @@ void btn_on_depressed() {
 		btn_short_press();
 }
 
-static inline void btn_short_press() {
+void btn_short_press() {
 	if (mtbbus_auto_speed_in_progress) {
 		autodetect_mtbbus_speed_stop();
 		return;
@@ -319,7 +316,7 @@ static inline void btn_short_press() {
 	update_mtbbus_polarity();
 }
 
-static inline void btn_long_press() {
+void btn_long_press() {
 	if (!mtbbus_addressed())
 		autodetect_mtbbus_speed();
 }
@@ -508,7 +505,7 @@ void goto_bootloader() {
 	while (true);
 }
 
-static inline void update_mtbbus_polarity() {
+void update_mtbbus_polarity() {
 	error_flags.bits.bad_mtbbus_polarity = !((PIND >> PIN_UART_RX) & 0x1);
 }
 
@@ -534,13 +531,13 @@ bool is_ir_support_measure() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static inline bool mtbbus_addressed() {
+bool mtbbus_addressed() {
 	return mtbbus_timeout < MTBBUS_TIMEOUT_MAX;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static inline void autodetect_mtbbus_speed() {
+void autodetect_mtbbus_speed() {
 	io_led_blue_on();
 	mtbbus_auto_speed_in_progress = true;
 	mtbbus_auto_speed_last = 0; // relies on first speed 38400 kBd = 0x01
@@ -555,14 +552,14 @@ void mtbbus_auto_speed_next() {
 	mtbbus_set_speed(mtbbus_auto_speed_last);
 }
 
-static inline void mtbbus_auto_speed_received() {
+void mtbbus_auto_speed_received() {
 	mtbbus_auto_speed_in_progress = false;
 	config_mtbbus_speed = mtbbus_auto_speed_last;
 	config_write = true;
 	io_led_blue_off();
 }
 
-static inline void autodetect_mtbbus_speed_stop() {
+void autodetect_mtbbus_speed_stop() {
 	if (mtbbus_auto_speed_in_progress) {
 		mtbbus_auto_speed_in_progress = false;
 		io_led_blue_off();
