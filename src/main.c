@@ -57,7 +57,6 @@ volatile uint8_t led_red_counter = 0;
 
 volatile bool beacon = false;
 volatile bool inputs_debounce_to_update = false;
-volatile bool scom_to_update = false;
 volatile bool outputs_changed_when_setting_scom = false;
 
 #define LED_BLUE_BEACON_ON 100
@@ -85,6 +84,7 @@ volatile uint8_t mtbbus_auto_speed_last;
 #define MTBBUS_AUTO_SPEED_TIMEOUT 20 // 200 ms
 
 volatile uint8_t diag_timer = 0;
+volatile bool t3_elapsed = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -92,17 +92,24 @@ int main() {
 	init();
 
 	while (true) {
-		if (scom_to_update) {
-			scom_to_update = false;
+		if (t3_elapsed) {
+			t3_elapsed = false;
+
+			outputs_update();
+			inputs_fall_update();
+			leds_update();
+
 			outputs_changed_when_setting_scom = false;
 			scom_update();
 			if (outputs_changed_when_setting_scom)
 				outputs_apply_state();
 		}
+
 		if (inputs_debounce_to_update) {
 			inputs_debounce_to_update = false;
 			inputs_debounce_update();
 		}
+
 		if (ir_debounce_to_update) {
 			ir_debounce_to_update = false;
 			ir_debounce_update();
@@ -234,10 +241,7 @@ ISR(TIMER1_COMPA_vect) {
 	if ((TCNT1H > 0) & (TCNT1H < OCR1AH))
 		mtbbus_warn_flags.bits.missed_timer = true;
 
-	scom_to_update = true;
-	outputs_update();
-	inputs_fall_update();
-	leds_update();
+	t3_elapsed = true;
 
 	if (_init_counter < INIT_TIME)
 		_init_counter++;
