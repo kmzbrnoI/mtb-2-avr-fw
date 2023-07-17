@@ -125,6 +125,9 @@ int main() {
 			btn_long_press();
 		}
 
+		if ((mtbbus_auto_speed_in_progress) && (mtbbus_auto_speed_timer == MTBBUS_AUTO_SPEED_TIMEOUT))
+			mtbbus_auto_speed_next();
+
 		wdt_reset();
 	}
 }
@@ -236,11 +239,8 @@ ISR(TIMER1_COMPA_vect) {
 	if ((btn_pressed) && (btn_press_time < BTN_PRESS_1S))
 		btn_press_time++;
 
-	if (mtbbus_auto_speed_in_progress) {
+	if ((mtbbus_auto_speed_in_progress) && (mtbbus_auto_speed_timer < MTBBUS_AUTO_SPEED_TIMEOUT))
 		mtbbus_auto_speed_timer++;
-		if (mtbbus_auto_speed_timer >= MTBBUS_AUTO_SPEED_TIMEOUT)
-			mtbbus_auto_speed_next();
-	}
 
 	{
 		static uint8_t diag_timer = 0;
