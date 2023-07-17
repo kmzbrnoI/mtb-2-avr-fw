@@ -45,7 +45,7 @@ static inline bool is_ir_input_in_section(uint8_t input) {
 #define CONFIG_MODULE_TYPE_NONIR 0x11
 #define CONFIG_MODULE_TYPE (config_ir_support ? CONFIG_MODULE_TYPE_IR : CONFIG_MODULE_TYPE_NONIR)
 #define CONFIG_FW_MAJOR 1
-#define CONFIG_FW_MINOR 3
+#define CONFIG_FW_MINOR 4
 #define CONFIG_PROTO_MAJOR 4
 #define CONFIG_PROTO_MINOR 1
 
