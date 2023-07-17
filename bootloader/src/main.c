@@ -134,7 +134,7 @@ int main() {
 
 void _mtbbus_init(void) {
 	uint8_t mtbbus_speed = eeprom_read_byte(EEPROM_ADDR_MTBBUS_SPEED);
-	if (mtbbus_speed > MTBBUS_SPEED_115200)
+	if (mtbbus_speed > MTBBUS_SPEED_MAX)
 		mtbbus_speed = MTBBUS_SPEED_38400;
 
 	io_shift_update();
