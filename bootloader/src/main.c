@@ -155,6 +155,8 @@ void check_and_boot(void) {
 
 void main_program(void) {
 	cli();
+	TCCR1B = 0;
+	TIMSK1 = 0;
 	MCUCR = (1 << IVCE);
 	MCUCR = 0; // move interrupts back to normal program
 	__asm__ volatile ("ijmp" ::"z" (0));
