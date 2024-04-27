@@ -654,6 +654,21 @@ void send_diag_value(uint8_t i) {
 		mtbbus_output_buf[6] = ts_gain;
 		break;
 
+	case MTBBUS_DV_MTBBUS_RECEIVED:
+		mtbbus_output_buf[0] = 2+sizeof(mtbbus_diag.received);
+		MEMCPY_FROM_VAR(&mtbbus_output_buf[3], mtbbus_diag.received);
+		break;
+
+	case MTBBUS_DV_MTBBUS_BAD_CRC:
+		mtbbus_output_buf[0] = 2+sizeof(mtbbus_diag.bad_crc);
+		MEMCPY_FROM_VAR(&mtbbus_output_buf[3], mtbbus_diag.bad_crc);
+		break;
+
+	case MTBBUS_DV_MTBUS_SENT:
+		mtbbus_output_buf[0] = 2+sizeof(mtbbus_diag.sent);
+		MEMCPY_FROM_VAR(&mtbbus_output_buf[3], mtbbus_diag.sent);
+		break;
+
 	default:
 		mtbbus_output_buf[0] = 2+0;
 		mtbbus_warn_flags_old = mtbbus_warn_flags;
