@@ -88,10 +88,10 @@ void mtbbus_set_speed(uint8_t speed) {
 
 void mtbbus_update(void) {
 	if (received) {
-		received = false;
 		if (mtbbus_on_receive != NULL)
 			mtbbus_on_receive(received_addr == 0, mtbbus_input_buf[1],
 			                  (uint8_t*)mtbbus_input_buf+2, mtbbus_input_buf_size-3);
+		received = false;
 	}
 
 	if (sent) {
