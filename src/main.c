@@ -119,8 +119,8 @@ int main() {
 		}
 
 		if (config_write) {
-			config_write = false;
-			config_save();
+			if (config_save()) // repeat calling until all data really saved
+				config_write = false;
 		}
 
 		if (!ir_shift_disable) {
