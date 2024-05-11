@@ -183,14 +183,12 @@ bool fwcrc_ok(void) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len) {
-	if (broadcast)
-		return;
 	_delay_us(2);
 
-	if (command_code == MTBBUS_CMD_MOSI_MODULE_INQUIRY) {
+	if ((command_code == MTBBUS_CMD_MOSI_MODULE_INQUIRY) && (!broadcast)) {
 		mtbbus_send_ack();
 
-	} else if (command_code == MTBBUS_CMD_MOSI_INFO_REQ) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_INFO_REQ) && (!broadcast)) {
 		mtbbus_output_buf[0] = 7;
 		mtbbus_output_buf[1] = MTBBUS_CMD_MISO_MODULE_INFO;
 		mtbbus_output_buf[2] = CONFIG_MODULE_TYPE;
@@ -205,10 +203,12 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_send_buf_autolen();
 
 	} else if ((command_code == MTBBUS_CMD_MOSI_CHANGE_SPEED) && (data_len >= 1)) {
-		eeprom_write_byte(EEPROM_ADDR_MTBBUS_SPEED, data[0]);
 		mtbbus_set_speed(data[0]);
+		if (!broadcast)
+			mtbbus_send_ack();
+		eeprom_update_byte(EEPROM_ADDR_MTBBUS_SPEED, data[0]);
 
-	} else if ((command_code == MTBBUS_CMD_MOSI_WRITE_FLASH) && (data_len >= 66)) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_WRITE_FLASH) && (data_len >= 66) && (!broadcast)) {
 		uint8_t _page = (data[0] << 1) | (data[1] >> 7);
 		uint8_t _subpage = data[1] & 0x7F;
 		if ((_subpage % 64 != 0) || (_page >= 224)) {
@@ -239,7 +239,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 			page_write = true;
 		}
 
-	} else if (command_code == MTBBUS_CMD_MOSI_WRITE_FLASH_STATUS_REQ) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_WRITE_FLASH_STATUS_REQ) && (!broadcast)) {
 		mtbbus_output_buf[0] = 4;
 		mtbbus_output_buf[1] = MTBBUS_CMD_MISO_WRITE_FLASH_STATUS;
 		mtbbus_output_buf[2] = (page_erase || page_write);
@@ -247,11 +247,11 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_output_buf[4] = subpage;
 		mtbbus_send_buf_autolen();
 
-	} else if (command_code == MTBBUS_CMD_MOSI_REBOOT) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_REBOOT) && (!broadcast)) {
 		mtbbus_on_sent = &check_and_boot;
 		mtbbus_send_ack();
 
-	} else if ((command_code == MTBBUS_CMD_MOSI_FWUPGD_REQUEST) && (data_len >= 1)) {
+	} else if ((command_code == MTBBUS_CMD_MOSI_FWUPGD_REQUEST) && (data_len >= 1) && (!broadcast)) {
 		mtbbus_send_ack();
 
 	} else {
