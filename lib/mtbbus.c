@@ -25,7 +25,9 @@ volatile uint8_t mtbbus_speed;
 void (*mtbbus_on_receive)(bool broadcast, uint8_t command_code, uint8_t *data, uint8_t data_len) = NULL;
 void (*mtbbus_on_sent)(void) = NULL;
 
+#ifdef SUP_MTBBUS_DIAG
 volatile MtbBusDiag mtbbus_diag;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -70,7 +72,9 @@ void _t2_start() {
 
 void mtbbus_set_speed(uint8_t speed) {
 	mtbbus_speed = speed;
+#ifdef SUP_MTBBUS_DIAG
 	memset((void*)&mtbbus_diag, 0, sizeof(mtbbus_diag));
+#endif
 	UBRR0H = 0;
 
 	switch (speed) {
@@ -153,7 +157,9 @@ void _mtbbus_send_buf(void) {
 
 	while (!(UCSR0A & _BV(UDRE0)));
 	_send_next_byte();
+#ifdef SUP_MTBBUS_DIAG
 	mtbbus_diag.sent++;
+#endif
 }
 
 void _send_next_byte(void) {
@@ -225,9 +231,11 @@ static inline void _mtbbus_received_non_ninth(uint8_t data) {
 		if (received_crc == msg_crc) {
 			received = true;
 			_t2_start();
+#ifdef SUP_MTBBUS_DIAG
 			mtbbus_diag.received++;
 		} else {
 			mtbbus_diag.bad_crc++;
+#endif
 		}
 
 		receiving = false;

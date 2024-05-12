@@ -85,6 +85,7 @@ int mtbbus_send_buf(void);
 #define MTBBUS_DV_MTBBUS_BAD_CRC 17
 #define MTBBUS_DV_MTBUS_SENT 18
 
+#ifdef SUP_MTBBUS_DIAG
 typedef struct {
 	uint32_t received;
 	uint32_t bad_crc;
@@ -92,5 +93,6 @@ typedef struct {
 } MtbBusDiag;
 
 extern volatile MtbBusDiag mtbbus_diag;
+#endif
 
 #endif
