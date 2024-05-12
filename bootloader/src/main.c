@@ -192,10 +192,7 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 		mtbbus_output_buf[0] = 7;
 		mtbbus_output_buf[1] = MTBBUS_CMD_MISO_MODULE_INFO;
 		mtbbus_output_buf[2] = CONFIG_MODULE_TYPE;
-		if (error_flags.bits.crc)
-			mtbbus_output_buf[3] = 2;
-		else
-			mtbbus_output_buf[3] = 1;
+		mtbbus_output_buf[3] = (error_flags.bits.crc) ? 2 : 1;
 		mtbbus_output_buf[4] = CONFIG_FW_MAJOR;
 		mtbbus_output_buf[5] = CONFIG_FW_MINOR;
 		mtbbus_output_buf[6] = CONFIG_PROTO_MAJOR;
