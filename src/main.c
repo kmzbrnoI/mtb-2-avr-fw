@@ -106,6 +106,8 @@ int main() {
 			scom_update();
 			if (outputs_changed_when_setting_scom)
 				outputs_apply_state();
+
+			mtbbus_update(); // poll mtbbus again so we don't miss any data
 		}
 
 		if (inputs_debounce_to_update) {
