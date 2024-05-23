@@ -440,13 +440,13 @@ void mtbbus_received(bool broadcast, uint8_t command_code, uint8_t *data, uint8_
 
 	case MTBBUS_CMD_MOSI_SET_OUTPUT:
 		if ((data_len >= 4) && (!broadcast)) {
-			outputs_set_zipped(data, data_len);
-			outputs_changed_when_setting_scom = true;
-
 			mtbbus_output_buf[0] = data_len+1;
 			mtbbus_output_buf[1] = MTBBUS_CMD_MISO_OUTPUT_SET;
 			memcpy((uint8_t*)mtbbus_output_buf+2, data, data_len);
 			mtbbus_send_buf_autolen();
+
+			outputs_set_zipped(data, data_len);
+			outputs_changed_when_setting_scom = true;
 		} else { goto INVALID_MSG; }
 		break;
 
