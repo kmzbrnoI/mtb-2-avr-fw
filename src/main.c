@@ -184,7 +184,7 @@ void init(void) {
 	io_led_blue_on();
 	scom_init();
 
-	// Setup timer 0 @ 20 kHz (period 100 us)
+	// Setup timer 0 @ 20 kHz (period 50 us)
 	TCCR0A = (1 << WGM01); // CTC mode
 	TCCR0B = (1 << CS01); // CTC mode, prescaler 8×
 	TIMSK0 = (1 << OCIE0A); // enable compare match interrupt
@@ -228,7 +228,7 @@ void on_initialized(void) {
 }
 
 ISR(TIMER0_COMPA_vect) {
-	// Timer 1 @ 20 kHz (period 50 us)
+	// Timer 0 @ 20 kHz (period 50 us)
 	static size_t counter = 0;
 
 	if ((!inputs_disabled) && (config_ir_support))
@@ -236,16 +236,20 @@ ISR(TIMER0_COMPA_vect) {
 
 	counter++;
 	if (counter >= 10) { // 2 kHz (500 us)
+		if (inputs_debounce_to_update) // debouncing was not executed since last call -> emit warning
+			mtbbus_warn_flags.bits.missed_timer = true;
 		inputs_debounce_to_update = true;
 		counter = 0;
 	}
 }
 
 ISR(TIMER1_COMPA_vect) {
-	// Timer 3 @ 100 Hz (period 10 ms)
-	if ((TCNT1H > 0) & (TCNT1H < OCR1AH))
+	// Timer 1 @ 100 Hz (period 10 ms)
+	if ((TCNT1H > 0) && (TCNT1H < OCR1AH))
 		mtbbus_warn_flags.bits.missed_timer = true;
 
+	if (t3_elapsed) // timer 3 was not processed since last interrupt -> emit warning
+		mtbbus_warn_flags.bits.missed_timer = true;
 	t3_elapsed = true;
 
 	if (_init_counter < INIT_TIME)
