@@ -4,7 +4,7 @@
 uint8_t _address;
 bool uart_out_high = false;
 
-static inline void io_reset() {
+static inline void io_reset(void) {
 	SPCR = 0;
 	DDRB = 0;
 	DDRC = 0;
@@ -14,7 +14,7 @@ static inline void io_reset() {
 	PORTD = 0;
 }
 
-void io_init() {
+void io_init(void) {
 	io_reset();
 
 	DDRB |= (1 << PIN_LED_GREEN) | (1 << PIN_LED_BLUE);
@@ -41,7 +41,7 @@ void io_init() {
 	outputs_disable();
 }
 
-void io_shift_update() {
+void io_shift_update(void) {
 	// Typical time of this function: 10 us
 	uint8_t read;
 
@@ -69,18 +69,18 @@ void io_shift_update() {
 	PORTD &= ~(1 << PIN_INPUT_SHIFT);
 }
 
-uint8_t io_get_addr_raw() {
+uint8_t io_get_addr_raw(void) {
 	return _address;
 }
 
-void uart_out() {
+void uart_out(void) {
 	if (uart_out_high)
 		PORTD |= (1 << PIN_UART_DIR);
 	else
 		PORTD &= ~(1 << PIN_UART_DIR);
 }
 
-void uart_in() {
+void uart_in(void) {
 	if (uart_out_high)
 		PORTD &= ~(1 << PIN_UART_DIR);
 	else

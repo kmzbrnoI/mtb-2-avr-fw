@@ -21,16 +21,16 @@
 #define PIN_UART_TX PD1
 #define PIN_UART_DIR PD2
 
-void io_init();
+void io_init(void);
 
-uint8_t io_get_addr_raw();
+uint8_t io_get_addr_raw(void);
 
-static inline void io_led_red_on() { PORTC &= ~(1 << PIN_LED_RED); }
-static inline void io_led_red_off() { PORTC |= (1 << PIN_LED_RED); }
-static inline void io_led_green_on() { PORTB |= (1 << PIN_LED_GREEN); }
-static inline void io_led_green_off() { PORTB &= ~(1 << PIN_LED_GREEN); }
-static inline void io_led_blue_on() { PORTB |= (1 << PIN_LED_BLUE); }
-static inline void io_led_blue_off() { PORTB &= ~(1 << PIN_LED_BLUE); }
+static inline void io_led_red_on(void) { PORTC &= ~(1 << PIN_LED_RED); }
+static inline void io_led_red_off(void) { PORTC |= (1 << PIN_LED_RED); }
+static inline void io_led_green_on(void) { PORTB |= (1 << PIN_LED_GREEN); }
+static inline void io_led_green_off(void) { PORTB &= ~(1 << PIN_LED_GREEN); }
+static inline void io_led_blue_on(void) { PORTB |= (1 << PIN_LED_BLUE); }
+static inline void io_led_blue_off(void) { PORTB &= ~(1 << PIN_LED_BLUE); }
 
 static inline void io_led_red(bool state) {
 	if (state)
@@ -53,22 +53,22 @@ static inline void io_led_blue(bool state) {
 		io_led_blue_off();
 }
 
-static inline bool io_led_red_state() { return !((PORTC >> PIN_LED_RED) & 0x1); }
-static inline bool io_led_green_state() { return (PORTB >> PIN_LED_GREEN) & 0x1; }
-static inline bool io_led_blue_state() { return (PORTB >> PIN_LED_BLUE) & 0x1; }
+static inline bool io_led_red_state(void) { return !((PORTC >> PIN_LED_RED) & 0x1); }
+static inline bool io_led_green_state(void) { return (PORTB >> PIN_LED_GREEN) & 0x1; }
+static inline bool io_led_blue_state(void) { return (PORTB >> PIN_LED_BLUE) & 0x1; }
 
-static inline void io_led_red_toggle() { io_led_red(!io_led_red_state()); }
-static inline void io_led_green_toggle() { io_led_green(!io_led_green_state()); }
-static inline void io_led_blue_toggle() { io_led_blue(!io_led_blue_state()); }
+static inline void io_led_red_toggle(void) { io_led_red(!io_led_red_state()); }
+static inline void io_led_green_toggle(void) { io_led_green(!io_led_green_state()); }
+static inline void io_led_blue_toggle(void) { io_led_blue(!io_led_blue_state()); }
 
-static inline bool io_button() { return (PIND >> PIN_BUTTON) & 0x1; }
+static inline bool io_button(void) { return (PIND >> PIN_BUTTON) & 0x1; }
 
-void uart_out();
-void uart_in();
+void uart_out(void);
+void uart_in(void);
 
-static inline void outputs_enable() { PORTD &= ~(1 << PIN_OUTPUTS_DISABLE); }
-static inline void outputs_disable() { PORTD |= (1 << PIN_OUTPUTS_DISABLE); }
+static inline void outputs_enable(void) { PORTD &= ~(1 << PIN_OUTPUTS_DISABLE); }
+static inline void outputs_disable(void) { PORTD |= (1 << PIN_OUTPUTS_DISABLE); }
 
-void io_shift_update();
+void io_shift_update(void);
 
 #endif
