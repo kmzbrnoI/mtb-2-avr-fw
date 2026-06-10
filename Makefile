@@ -9,6 +9,7 @@ OBJDIR = obj
 SRC = $(wildcard src/*.c) $(wildcard lib/*.c)
 OPT = 2
 CSTANDARD = c99
+EXTRAINCDIRS = lib
 DEBUG = dwarf-2
 
 CDEFS = -DF_CPU=$(F_CPU)UL -DSUP_MTBBUS_DIAG
@@ -19,6 +20,7 @@ CFLAGS += -O$(OPT)
 CFLAGS += -Wall
 CFLAGS += -pedantic
 CFLAGS += -Wa,-adhlns=$(<:%.c=$(OBJDIR)/%.lst)
+CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += -std=$(CSTANDARD)
 
 LDFLAGS = -Wl,-Map=$(TARGET).map,--cref

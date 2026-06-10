@@ -10,6 +10,7 @@ SRC = $(wildcard src/*.c) $(wildcard lib/*.c)
 OPT = s
 CSTANDARD = c99
 CDEFS = -DF_CPU=$(F_CPU)UL
+EXTRAINCDIRS = lib
 DEBUG = dwarf-2
 
 CFLAGS = -g$(DEBUG)
